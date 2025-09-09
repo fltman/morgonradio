@@ -1,0 +1,26 @@
+{
+  "name": "morgonpodd",
+  "version": "1.0.0",
+  "description": "Automatisk morgonpodd-generator",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "dev": "node --env-file=.env src/index.js",
+    "generate": "node --env-file=.env src/generate.js",
+    "schedule": "node --env-file=.env src/schedule.js",
+    "upload": "node --env-file=.env src/upload.js"
+  },
+  "dependencies": {
+    "@google-cloud/text-to-speech": "^5.0.2",
+    "cheerio": "^1.0.0-rc.12",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "feed": "^4.2.2",
+    "node-cron": "^3.0.3",
+    "openai": "^4.52.1",
+    "puppeteer": "^22.12.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.9"
+  }
+}

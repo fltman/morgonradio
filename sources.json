@@ -1,0 +1,60 @@
+{
+  "sources": [
+    {
+      "name": "SVT Nyheter",
+      "url": "https://www.svt.se/nyheter/",
+      "type": "news",
+      "selector": "article h2",
+      "priority": 1,
+      "maxItems": 5
+    },
+    {
+      "name": "DN",
+      "url": "https://www.dn.se/",
+      "type": "news",
+      "selector": "article h2",
+      "priority": 1,
+      "maxItems": 3
+    },
+    {
+      "name": "TechCrunch",
+      "url": "https://techcrunch.com/",
+      "type": "tech",
+      "selector": "h2.loop-card__title",
+      "priority": 2,
+      "maxItems": 3
+    },
+    {
+      "name": "Hacker News",
+      "url": "https://news.ycombinator.com/",
+      "type": "tech",
+      "selector": ".titleline > a",
+      "priority": 2,
+      "maxItems": 5
+    },
+    {
+      "name": "SMHI Väder Stockholm",
+      "url": "https://www.smhi.se/vader/prognoser/ortsprognoser/q/Stockholm/2673730",
+      "type": "weather",
+      "priority": 1,
+      "maxItems": 1
+    }
+  ],
+  "podcastSettings": {
+    "title": "Min Morgonpodd",
+    "description": "Din dagliga sammanfattning av nyheter, teknik och väder",
+    "author": "Morgonpodd AI",
+    "language": "sv-SE",
+    "category": "News",
+    "explicit": false,
+    "timezone": "Europe/Stockholm",
+    "generateTime": "06:00",
+    "maxDuration": 600,
+    "voice": {
+      "language": "sv-SE",
+      "name": "sv-SE-Standard-A",
+      "speakingRate": 1.0,
+      "pitch": 0.0
+    }
+  }
+}
