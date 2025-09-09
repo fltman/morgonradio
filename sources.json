@@ -1,43 +1,77 @@
 {
   "sources": [
     {
-      "name": "SVT Nyheter",
-      "url": "https://www.svt.se/nyheter/",
+      "name": "SVT Nyheter RSS",
+      "url": "https://www.svt.se/nyheter/rss.xml",
       "type": "news",
-      "selector": "article h2",
+      "format": "rss",
       "priority": 1,
-      "maxItems": 5
+      "maxItems": 5,
+      "selector": "",
+      "description": "",
+      "enabled": true
     },
     {
-      "name": "DN",
-      "url": "https://www.dn.se/",
+      "name": "DN RSS",
+      "url": "https://www.dn.se/rss/",
       "type": "news",
-      "selector": "article h2",
+      "format": "rss",
       "priority": 1,
-      "maxItems": 3
+      "maxItems": 3,
+      "selector": "",
+      "description": "",
+      "enabled": true
     },
     {
-      "name": "TechCrunch",
-      "url": "https://techcrunch.com/",
+      "name": "TechCrunch RSS",
+      "url": "https://techcrunch.com/feed/",
       "type": "tech",
-      "selector": "h2.loop-card__title",
+      "format": "rss",
       "priority": 2,
-      "maxItems": 3
+      "maxItems": 3,
+      "selector": "",
+      "description": "",
+      "enabled": true
     },
     {
-      "name": "Hacker News",
+      "name": "Wired RSS",
+      "url": "https://www.wired.com/feed/rss",
+      "type": "tech",
+      "format": "rss",
+      "priority": 2,
+      "maxItems": 2,
+      "selector": "",
+      "description": "",
+      "enabled": true
+    },
+    {
+      "name": "The Verge RSS",
+      "url": "https://www.theverge.com/rss/index.xml",
+      "type": "tech",
+      "format": "rss",
+      "priority": 2,
+      "maxItems": 2,
+      "selector": "",
+      "description": "",
+      "enabled": true
+    },
+    {
+      "name": "Hacker News (HTML fallback)",
       "url": "https://news.ycombinator.com/",
       "type": "tech",
       "selector": ".titleline > a",
-      "priority": 2,
-      "maxItems": 5
+      "priority": 3,
+      "maxItems": 3,
+      "description": "",
+      "enabled": true
     },
     {
-      "name": "SMHI Väder Stockholm",
-      "url": "https://www.smhi.se/vader/prognoser/ortsprognoser/q/Stockholm/2673730",
+      "name": "väder",
+      "url": "https://wttr.in/kalmar?format=3",
       "type": "weather",
-      "priority": 1,
-      "maxItems": 1
+      "selector": "",
+      "description": "",
+      "enabled": true
     }
   ],
   "podcastSettings": {
@@ -50,6 +84,92 @@
     "timezone": "Europe/Stockholm",
     "generateTime": "06:00",
     "maxDuration": 600,
+    "publicUrl": "https://pub-5b4c915c1917445e9a2efc8dafcbce45.r2.dev",
+    "cover_image": "public/cover.jpg",
+    "hosts": [
+      {
+        "name": "Anna",
+        "voice_id": "xc1ryI9pRbBLNr6aTJET",
+        "personality": "Energisk och positiv morgonvärd som älskar nyheter",
+        "style": "konversationell och varm"
+      },
+      {
+        "name": "Erik",
+        "voice_id": "iwNZQzqCFIBqLR6sgFpN",
+        "personality": "Analytisk och noggrann, specialist på teknik och ekonomi",
+        "style": "informativ men lättsam"
+      }
+    ],
+    "promptTemplates": {
+      "main_prompt": "Du skapar ett naturligt samtal mellan {host1_name} och {host2_name}, två professionella poddvärdar.\n\n{host1_name}: {host1_personality}\n{host2_name}: {host2_personality}\n\nSkapa ett engagerande samtal där värdarna diskuterar dagens nyheter på ett naturligt sätt.",
+      "conversation_style": "natural_dialogue"
+    },
+    "textToDialogue": {
+      "enabled": true,
+      "fallbackToSegments": true,
+      "model": "eleven_multilingual_v2",
+      "maxCharsPerChunk": 2000,
+      "globalVoiceSettings": {
+        "stability": 0.6,
+        "similarity_boost": 0.8,
+        "style": 0.5
+      },
+      "emotionMapping": {
+        "excited": [
+          "fantastisk",
+          "underbart",
+          "bra nyheter",
+          "glädjande",
+          "framgång"
+        ],
+        "curious": [
+          "intressant",
+          "fascinerande",
+          "spännande",
+          "upptäckt",
+          "innovation"
+        ],
+        "concerned": [
+          "oroande",
+          "problem",
+          "kris",
+          "allvarligt",
+          "varning"
+        ],
+        "professional": [
+          "analys",
+          "enligt",
+          "forskning",
+          "studie",
+          "experter"
+        ],
+        "friendly": [
+          "hej",
+          "välkommen",
+          "tack",
+          "vi pratar om"
+        ],
+        "calm": [
+          "väder",
+          "temperatur",
+          "regn",
+          "sol",
+          "grader"
+        ]
+      }
+    },
+    "intro": {
+      "enabled": true,
+      "prompt": "Välkommen till {podcast_title}! Idag är det {date}. Här kommer din dagliga sammanfattning av nyheter, teknik och väder.",
+      "voice_id": "iwNZQzqCFIBqLR6sgFpN",
+      "jingle_file": "audio/jingle.mp3",
+      "mix_type": "fade_overlay",
+      "fade_duration": 2.0,
+      "crossfade_duration": 1.5,
+      "stability": 0.6,
+      "similarity_boost": 0.8,
+      "style": 0.3
+    },
     "voice": {
       "language": "sv-SE",
       "name": "sv-SE-Standard-A",

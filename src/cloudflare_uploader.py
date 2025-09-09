@@ -14,15 +14,29 @@ logger = logging.getLogger(__name__)
 class CloudflareUploader:
     def __init__(self):
         # Configure S3 client for Cloudflare R2
+        endpoint_url = os.getenv('CLOUDFLARE_R2_ENDPOINT')
+        if not endpoint_url:
+            account_id = os.getenv('CLOUDFLARE_ACCOUNT_ID')
+            if account_id:
+                endpoint_url = f"https://{account_id}.r2.cloudflarestorage.com"
+            else:
+                # Fallback to jurisdiction-specific endpoint
+                endpoint_url = "https://f3ff16684b278292a1862429e0262527.r2.cloudflarestorage.com"
+        
         self.s3_client = boto3.client(
             's3',
-            endpoint_url=f"https://{os.getenv('CLOUDFLARE_ACCOUNT_ID')}.r2.cloudflarestorage.com",
+            endpoint_url=endpoint_url,
             aws_access_key_id=os.getenv('CLOUDFLARE_ACCESS_KEY_ID'),
             aws_secret_access_key=os.getenv('CLOUDFLARE_SECRET_ACCESS_KEY'),
-            config=Config(signature_version='s3v4'),
+            config=Config(
+                signature_version='s3v4',
+                retries={'max_attempts': 3},
+                connect_timeout=60,
+                read_timeout=60
+            ),
             region_name='auto'
         )
-        self.bucket_name = os.getenv('CLOUDFLARE_R2_BUCKET', 'morgonpodd')
+        self.bucket_name = os.getenv('CLOUDFLARE_R2_BUCKET', 'lipsync-tool')
         self.public_url = os.getenv('CLOUDFLARE_R2_PUBLIC_URL', 'https://morgonpodd.example.com')
     
     def upload_file(self, local_path: str, remote_path: str = None, content_type: str = None) -> str:
@@ -98,15 +112,30 @@ class CloudflareUploader:
     
     def upload_static_files(self):
         """Upload static files like images and HTML"""
+        # Load config to get cover image path
+        try:
+            config_path = os.path.join(os.path.dirname(__file__), '..', 'sources.json')
+            with open(config_path, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+                cover_image_path = config.get('podcastSettings', {}).get('cover_image', 'public/cover.jpg')
+        except:
+            cover_image_path = 'public/cover.jpg'
+        
         static_files = [
             ('public/index.html', 'index.html'),
-            ('public/cover.jpg', 'cover.jpg'),
-            ('public/logo.png', 'logo.png')
+            (cover_image_path, os.path.basename(cover_image_path))
         ]
+        
+        # Add legacy logo.png if it exists
+        if os.path.exists('public/logo.png'):
+            static_files.append(('public/logo.png', 'logo.png'))
         
         for local, remote in static_files:
             if os.path.exists(local):
                 self.upload_file(local, remote)
+                logger.info(f"Uploaded static file: {local} -> {remote}")
+            else:
+                logger.warning(f"Static file not found: {local}")
     
     def sync_all_episodes(self):
         """Sync all local episodes to Cloudflare R2"""

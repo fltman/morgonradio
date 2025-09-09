@@ -5,6 +5,9 @@ from typing import List, Dict, Any
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
+import sys
+sys.path.append(os.path.dirname(__file__))
+from music_library import MusicLibrary
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
@@ -18,8 +21,12 @@ class PodcastSummarizer:
             self.client = None
         else:
             self.client = OpenAI(api_key=api_key)
-        with open('sources.json', 'r', encoding='utf-8') as f:
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'sources.json')
+        with open(config_path, 'r', encoding='utf-8') as f:
             self.config = json.load(f)
+        
+        # Initialize music library
+        self.music_library = MusicLibrary()
     
     def create_podcast_script(self, scraped_data: List[Dict[str, Any]]) -> str:
         # Prepare content for summarization
@@ -37,10 +44,39 @@ class PodcastSummarizer:
         
         all_content = "\n".join(content_sections)
         
-        # Get current date in Swedish
+        # Get current date and time in Swedish with contextual information
         today = datetime.now()
         swedish_date = today.strftime("%d %B %Y")
         swedish_weekday = ['måndag', 'tisdag', 'onsdag', 'torsdag', 'fredag', 'lördag', 'söndag'][today.weekday()]
+        current_time = today.strftime("%H:%M")
+        
+        # Add time context for morning podcast
+        hour = today.hour
+        if 5 <= hour < 9:
+            time_context = "tidig morgon"
+        elif 9 <= hour < 12:
+            time_context = "förmiddag"
+        elif 12 <= hour < 17:
+            time_context = "eftermiddag"
+        elif 17 <= hour < 21:
+            time_context = "kväll"
+        else:
+            time_context = "sen kväll/natt"
+        
+        # Add seasonal and calendar context
+        month = today.month
+        if month in [12, 1, 2]:
+            season = "vintern"
+        elif month in [3, 4, 5]:
+            season = "våren" 
+        elif month in [6, 7, 8]:
+            season = "sommaren"
+        else:
+            season = "hösten"
+        
+        # Check if it's a weekend
+        is_weekend = today.weekday() >= 5
+        week_context = "helger" if is_weekend else "vardagar"
         
         # Get hosts configuration
         hosts = self.config['podcastSettings'].get('hosts', [
@@ -71,24 +107,61 @@ Skapa ett engagerande samtal där värdarna diskuterar dagens nyheter på ett na
             host2_style=host2.get('style', 'informativ men lättsam')
         )
         
+        # Get music context
+        music_context = self.music_library.get_music_prompt_context()
+        
         prompt = f"""{formatted_prompt}
         
-Dagens datum: {swedish_weekday} den {swedish_date}
+TEMPORAL KONTEXT:
+- Datum: {swedish_weekday} den {swedish_date}
+- Tid: {current_time} ({time_context})
+- Säsong: {season}
+- Veckoperiod: {week_context}
+- Aktuell tidskontext: Genereras klockan {current_time} under {time_context} på en {swedish_weekday}
 
 Dagens innehåll att diskutera:
 {all_content}
 
-Instruktioner:
-1. Skapa ett naturligt samtal mellan {host1['name']} och {host2['name']}
-2. Låt dem diskutera nyheterna som ett äkta samtal, inte bara läsa upp punkter  
-3. Inkludera naturliga övergångar och reaktioner
-4. {host1['name']} börjar ofta med hälsningar och översikter
-5. {host2['name']} fokuserar mer på analys och detaljer
-6. Använd format: "{host1['name']}: [text]" och "{host2['name']}: [text]"
-7. Markera pauser med "..." och låt samtalet flyta naturligt
-8. Avsluta med båda värdarna som säger adjö på sitt sätt
+{music_context}
 
-Skapa ett 8-12 minuters samtal på svenska."""
+EMOTIONAL DESIGN FÖR NATURLIGT SAMTAL:
+Skapa ett samtal som utnyttjar ElevenLabs nya text-to-dialogue funktionalitet med följande emotionella variation:
+- EXCITED: För positiva nyheter, framgångshistorier, spännande upptäckter
+- LAUGHING: För roliga nyheter, humoristiska kommentarer, lättsammare inslag
+- CURIOUS: För intressanta tekniska nyheter, forskningsresultat, innovations
+- CONCERNED: För allvarliga nyheter, problem, varningar, kriser
+- SAD: För tragiska nyheter, sorgsna händelser
+- NEUTRAL: För analyser, faktabaserad information, objektiva rapporter  
+- FRIENDLY: För hälsningar, övergångar, personliga kommentarer
+- SURPRISED: För överraskande nyheter, häpnadsväckande upptäckter
+- CONVERSATIONAL: Som bas för neutralt innehåll och naturliga övergångar
+
+OBS: Du kan markera emotionella partier med hakparenteser [excited], [laughing], etc. men använd sparsamt - endast för tydliga emotionella höjdpunkter.
+
+Instruktioner för optimerad text-to-dialogue:
+1. Skapa ett naturligt samtal mellan {host1['name']} och {host2['name']}
+2. Variera emotionell ton baserat på innehåll - använd ord som indikerar känsla:
+   - "Det här är verkligen spännande..." (CURIOUS/EXCITED)
+   - "Det är oroande att höra..." (CONCERNED) 
+   - "Enligt nya forskningsresultat..." (PROFESSIONAL)
+   - "Hej och välkommen..." (FRIENDLY)
+   - "Vädret idag visar..." (CALM)
+3. Låt värdarna reagera emotionellt passande på varandras kommentarer
+4. Inkludera naturliga övergångar med emotionell förändring
+5. {host1['name']} börjar med energi anpassad till {time_context}
+6. {host2['name']} balanserar med analytisk men engagerad ton
+7. Använd format: "{host1['name']}: [text]" och "{host2['name']}: [text]"
+8. Integrera bakgrundsmusik strategiskt för att förbättra upplevelsen:
+   - Använd intro-musik vid öppning: [MUSIK: artist - titel, 5 sekunder]
+   - Lägg till övergångsmusik mellan olika ämnen: [MUSIK: artist - titel, 3 sekunder]  
+   - Använd passande bakgrundsmusik för olika ämnen (se tillgängliga kategorier)
+   - Avsluta med outro-musik: [MUSIK: artist - titel, 5 sekunder]
+9. Anpassa språkstil och energi till {time_context} och {week_context}
+10. Skapa tydliga emotionella höjdpunkter och lugnare partier
+11. Referera naturligt till temporala element ({swedish_weekday}, {season})
+12. Avsluta med både värdarna i en passande känsloton för {time_context}
+
+Mål: Ett 8-12 minuters samtal som maximerar ElevenLabs emotionella röstteknologi för naturlig, engagerande podcast-upplevelse."""
 
         if not self.client:
             logger.warning("No OpenAI client available, using fallback script")

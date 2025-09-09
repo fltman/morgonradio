@@ -16,8 +16,9 @@ class RSSGenerator:
         self.fg = FeedGenerator()
         self.base_url = os.getenv('CLOUDFLARE_R2_PUBLIC_URL', 'https://morgonpodd.example.com')
         
-        # Load podcast settings
-        with open('sources.json', 'r', encoding='utf-8') as f:
+        # Load podcast settings from parent directory
+        config_path = os.path.join(os.path.dirname(__file__), '..', 'sources.json')
+        with open(config_path, 'r', encoding='utf-8') as f:
             config = json.load(f)
             self.settings = config['podcastSettings']
         
@@ -46,11 +47,14 @@ class RSSGenerator:
             email=os.getenv('PODCAST_EMAIL', 'podcast@example.com')
         )
         self.fg.podcast.itunes_summary(self.settings['description'])
-        self.fg.podcast.itunes_image(f"{self.base_url}/cover.jpg")
+        
+        # Use configured cover image or default
+        cover_image_filename = os.path.basename(self.settings.get('cover_image', 'public/cover.jpg'))
+        self.fg.podcast.itunes_image(f"{self.base_url}/{cover_image_filename}")
         
         # Feed logo/image
-        self.fg.logo(f"{self.base_url}/logo.png")
-        self.fg.image(url=f"{self.base_url}/cover.jpg", 
+        self.fg.logo(f"{self.base_url}/{cover_image_filename}")
+        self.fg.image(url=f"{self.base_url}/{cover_image_filename}", 
                      title=self.settings['title'],
                      link=self.base_url)
     
@@ -71,9 +75,25 @@ class RSSGenerator:
             pub_date = stockholm_tz.localize(pub_date)
         fe.published(pub_date)
         
-        # Audio file
-        audio_url = f"{self.base_url}/episodes/{os.path.basename(episode_metadata['audio_file'])}"
-        fe.enclosure(audio_url, 0, 'audio/mpeg')
+        # Audio file - use the standardized episode filename format
+        episode_number = episode_metadata['episode_number']
+        audio_url = f"{self.base_url}/episodes/episode_{episode_number}.mp3"
+        
+        # Try to get file size from metadata, or use a reasonable default
+        file_size = episode_metadata.get('file_size', 0)
+        if file_size == 0 and 'audio_file' in episode_metadata:
+            # Try to get size from local file if available
+            try:
+                if os.path.exists(episode_metadata['audio_file']):
+                    file_size = os.path.getsize(episode_metadata['audio_file'])
+            except:
+                pass
+        
+        # Use a reasonable default if still 0 (about 5MB for 10min episode)
+        if file_size == 0:
+            file_size = 5 * 1024 * 1024  # 5MB default
+            
+        fe.enclosure(audio_url, file_size, 'audio/mpeg')
         
         # Link to episode page
         fe.link(href=f"{self.base_url}/episode/{episode_metadata['episode_number']}")
