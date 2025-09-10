@@ -107,8 +107,9 @@ class MorgonPoddService:
     
     def combine_intro_and_main(self, intro_file: str, main_file: str) -> str:
         """Combine intro and main content with smooth crossfade transition"""
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        output_file = f"episodes/episode_{timestamp}.mp3"
+        import time
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S") + f"_{int(time.time() % 10000)}"
+        output_file = f"episodes/final_episode_{timestamp}.mp3"
         
         try:
             import subprocess
