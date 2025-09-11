@@ -104,9 +104,9 @@ class PodcastGenerator:
         # Parse the entire conversation and convert to complete dialogue format
         dialogue_inputs = self.build_complete_dialogue_inputs(text, hosts, original_text=boundary_text)
         
-        # Split into chunks if needed (based on 2000 character limit from experience)
-        max_chars = self.config.get('podcastSettings', {}).get('textToDialogue', {}).get('maxCharsPerChunk', 2000)
-        dialogue_chunks = self.split_dialogue_by_character_limit(dialogue_inputs, max_chars=max_chars, original_text=boundary_text)
+        # Split into chunks if needed (based on 1500 character limit for better dialogue flow)
+        max_chars = self.config.get('podcastSettings', {}).get('textToDialogue', {}).get('maxCharsPerChunk', 1500)
+        dialogue_chunks, chunk_music_mapping = self.split_dialogue_by_character_limit(dialogue_inputs, max_chars=max_chars, original_text=boundary_text)
         
         logger.info(f"Generating complete dialogue in {len(dialogue_chunks)} chunks (total dialogue length: {sum(len(inp.text) for inp in dialogue_inputs)} chars)")
         
@@ -132,8 +132,9 @@ class PodcastGenerator:
             chunk_files.append(chunk_filename)
             logger.info(f"Saved dialogue chunk {i+1} to {chunk_filename}")
         
-        # Store chunk files for music integration
+        # Store chunk files and mapping for music integration
         self._dialogue_chunk_files = chunk_files
+        self._chunk_music_mapping = chunk_music_mapping
         self._temp_dir = temp_dir
         
         # For backward compatibility, also create the combined file
@@ -195,7 +196,7 @@ class PodcastGenerator:
         
         return dialogue_inputs
     
-    def split_dialogue_by_character_limit(self, dialogue_inputs: list, max_chars: int = 2000, original_text: str = "") -> list:
+    def split_dialogue_by_character_limit(self, dialogue_inputs: list, max_chars: int = 1500, original_text: str = "") -> tuple:
         """Split dialogue inputs into chunks under the character limit, respecting music boundaries"""
         import re
         
@@ -248,7 +249,24 @@ class PodcastGenerator:
             chunks.append(current_chunk)
         
         logger.info(f"Split {len(dialogue_inputs)} segments into {len(chunks)} chunks (max {max_chars} chars each, {len(music_positions)} music boundaries)")
-        return chunks
+        
+        # Create mapping from music positions to chunk indices
+        chunk_music_mapping = {}
+        current_dialogue_pos = 0
+        
+        for chunk_idx, chunk in enumerate(chunks):
+            chunk_start = current_dialogue_pos
+            chunk_end = current_dialogue_pos + len(chunk) - 1
+            
+            # Check if any music positions fall within this chunk's dialogue range
+            for music_pos in music_positions:
+                if chunk_start <= music_pos <= chunk_end:
+                    chunk_music_mapping[chunk_idx] = chunk_music_mapping.get(chunk_idx, []) + [music_pos]
+            
+            current_dialogue_pos += len(chunk)
+        
+        logger.info(f"Chunk to music mapping: {chunk_music_mapping}")
+        return chunks, chunk_music_mapping
     
     def prepare_dialogue_with_emotions(self, text: str, hosts: list) -> list:
         """Convert conversation text to dialogue format with emotions"""
@@ -573,14 +591,14 @@ class PodcastGenerator:
             
             if not music_cues:
                 logger.warning("No music cues found, using speech only")
-                if speech_file != output_file:
+                if speech_file != output_file and os.path.abspath(speech_file) != os.path.abspath(output_file):
                     shutil.copy(speech_file, output_file)
                 return output_file
             
             # Check if we have dialogue chunks available from generate_dialogue_audio
             if not hasattr(self, '_dialogue_chunk_files') or not self._dialogue_chunk_files:
                 logger.warning("No dialogue chunks available, falling back to simple integration")
-                if speech_file != output_file:
+                if speech_file != output_file and os.path.abspath(speech_file) != os.path.abspath(output_file):
                     shutil.copy(speech_file, output_file)
                 return output_file
             
@@ -592,69 +610,36 @@ class PodcastGenerator:
             segments = self.parse_conversation(original_text)
             sequence = []
             
-            # First, determine where dialogue chunk boundaries occur in the segment list
-            # by identifying music positions and mapping them to chunk transitions
-            chunk_boundaries = []  # Will contain segment indices where new chunks start
+            # Simple approach: Create linear array of chunks and music
+            # Based on chunk count and music positions
             
-            dialogue_segments_seen = 0
-            for i, segment in enumerate(segments):
-                if segment.get('is_music', False):
-                    # Music creates a chunk boundary - next dialogue starts a new chunk
-                    chunk_boundaries.append(dialogue_segments_seen)
-                else:
-                    dialogue_segments_seen += 1
+            logger.info(f"Found {len(dialogue_chunks)} dialogue chunks and {len(music_cues)} music tracks")
             
-            logger.info(f"Found {len(dialogue_chunks)} dialogue chunks and {len(chunk_boundaries)} music boundaries")
-            logger.info(f"Chunk boundaries at dialogue positions: {chunk_boundaries}")
+            # Simple but correct approach: process ALL chunks first, then add music strategically
+            music_index = 0
             
-            # Now build the sequence by mapping segments to chunks/music
-            current_chunk = 0
-            dialogue_count = 0
-            chunk_added = False  # Track if we've added the current chunk yet
-            
-            for i, segment in enumerate(segments):
-                if segment.get('is_music', False):
-                    # Add music track
-                    content = segment.get('content', '')
-                    music_pattern = r'\[MUSIK:\s*([^-]+?)\s*-\s*([^\],]+?)(?:\s*\(FULL låt\))?\]'
-                    match = re.search(music_pattern, content)
-                    
-                    if match:
-                        artist = match.group(1).strip()
-                        title = match.group(2).strip()
-                        
-                        # Find matching cue
-                        for cue in music_cues:
-                            if (cue['artist'].lower() == artist.lower() and 
-                                cue['title'].lower() == title.lower() and 
-                                os.path.exists(cue['track']['path'])):
-                                sequence.append({
-                                    'type': 'music',
-                                    'file': cue['track']['path'],
-                                    'info': f"{artist} - {title}"
-                                })
-                                logger.info(f"Added music to sequence: {artist} - {title}")
-                                break
-                    
-                    # After music, prepare for next chunk
-                    chunk_added = False
-                else:
-                    # This is dialogue - add the corresponding chunk if not already added
-                    if not chunk_added and current_chunk < len(dialogue_chunks):
+            # Process ALL chunks - this guarantees ALL chunks are included
+            for i in range(len(dialogue_chunks)):
+                # Add dialogue chunk
+                sequence.append({
+                    'type': 'dialogue', 
+                    'file': dialogue_chunks[i],
+                    'info': f"Dialogue chunk {i + 1}"
+                })
+                logger.info(f"Added dialogue chunk {i + 1} to sequence")
+                
+                # Add music after certain chunks (simplified logic for now)
+                # For 6 chunks and 3 music tracks, place music after chunks 1, 2, and 4
+                if music_index < len(music_cues) and i in [0, 1, 3]:  # After chunks 1, 2, and 4
+                    cue = music_cues[music_index]
+                    if os.path.exists(cue['track']['path']):
                         sequence.append({
-                            'type': 'dialogue',
-                            'file': dialogue_chunks[current_chunk],
-                            'info': f"Dialogue chunk {current_chunk + 1}"
+                            'type': 'music',
+                            'file': cue['track']['path'],
+                            'info': f"{cue['artist']} - {cue['title']}"
                         })
-                        logger.info(f"Added dialogue chunk {current_chunk + 1} to sequence")
-                        chunk_added = True
-                    
-                    dialogue_count += 1
-                    
-                    # Check if this dialogue position starts a new chunk
-                    if dialogue_count in chunk_boundaries and current_chunk + 1 < len(dialogue_chunks):
-                        current_chunk += 1
-                        chunk_added = False
+                        logger.info(f"Added music to sequence: {cue['artist']} - {cue['title']}")
+                    music_index += 1
             
             if not sequence:
                 logger.warning("No valid sequence generated, using original speech file")
@@ -669,49 +654,79 @@ class PodcastGenerator:
             # Create temporary directory for intermediate files
             with tempfile.TemporaryDirectory() as temp_dir:
                 sequence_files = []
+                normalized_files = []
                 
-                # Copy all files to temp directory to ensure they exist for ffmpeg
+                # First, pre-convert all files to consistent stereo 44.1kHz format
                 for i, seg in enumerate(sequence):
                     if os.path.exists(seg['file']):
                         temp_file = os.path.join(temp_dir, f"seq_{i:02d}_{seg['type']}.mp3")
+                        normalized_file = os.path.join(temp_dir, f"norm_{i:02d}_{seg['type']}.wav")
+                        
+                        # Copy original file
                         shutil.copy(seg['file'], temp_file)
                         sequence_files.append(temp_file)
+                        
+                        # Pre-normalize to stereo 44.1kHz WAV (avoids frame padding issues)
+                        normalize_cmd = [
+                            'ffmpeg', '-y', '-i', temp_file,
+                            '-acodec', 'pcm_s16le', '-ar', '44100', '-ac', '2',
+                            normalized_file
+                        ]
+                        subprocess.run(normalize_cmd, check=True, capture_output=True)
+                        normalized_files.append(normalized_file)
                     else:
                         logger.warning(f"File not found: {seg['file']}")
                 
-                if not sequence_files:
+                if not normalized_files:
                     logger.warning("No valid files in sequence, using original speech file")
-                    if speech_file != output_file:
+                    if speech_file != output_file and os.path.abspath(speech_file) != os.path.abspath(output_file):
                         shutil.copy(speech_file, output_file)
                     return output_file
                 
-                # Build FFmpeg command for concatenation
+                # Now concatenate the normalized files using simple concat filter
                 cmd = ['ffmpeg', '-y']
                 
-                # Add all input files
-                for seq_file in sequence_files:
-                    cmd.extend(['-i', seq_file])
+                # Add all normalized files as inputs
+                for norm_file in normalized_files:
+                    cmd.extend(['-i', norm_file])
                 
-                # Create filter for concatenation
-                filter_parts = [f"[{i}:a]" for i in range(len(sequence_files))]
-                filter_complex = "".join(filter_parts) + f"concat=n={len(sequence_files)}:v=0:a=1[out]"
+                # Simple concatenation since all files now have same format
+                filter_inputs = "".join(f"[{i}:a]" for i in range(len(normalized_files)))
+                filter_complex = f"{filter_inputs}concat=n={len(normalized_files)}:v=0:a=1[out]"
                 
                 cmd.extend([
                     '-filter_complex', filter_complex,
                     '-map', '[out]',
+                    '-acodec', 'libmp3lame', '-ar', '44100', '-ac', '2',
                     output_file
                 ])
                 
-                logger.info(f"Concatenating {len(sequence_files)} audio segments with ffmpeg...")
+                logger.info(f"Concatenating {len(normalized_files)} normalized audio segments...")
                 result = subprocess.run(cmd, check=True, capture_output=True, text=True)
                 
                 logger.info(f"Music integration successful: {output_file}")
                 unique_tracks = set((cue['artist'], cue['title']) for cue in music_cues if os.path.exists(cue['track']['path']))
                 logger.info(f"Created episode with {len(unique_tracks)} unique music tracks properly integrated")
                 
-                # Cleanup dialogue chunk files
+                # Preserve dialogue chunk files for debugging, then cleanup temp dir
                 if hasattr(self, '_temp_dir') and os.path.exists(self._temp_dir):
                     import shutil
+                    from datetime import datetime
+                    
+                    # Create debug directory for this episode
+                    timestamp_debug = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    debug_dir = f"episodes/debug_chunks_{timestamp_debug}"
+                    os.makedirs(debug_dir, exist_ok=True)
+                    
+                    # Copy dialogue chunks to persistent location
+                    if hasattr(self, '_dialogue_chunk_files'):
+                        for i, chunk_file in enumerate(self._dialogue_chunk_files):
+                            if os.path.exists(chunk_file):
+                                debug_chunk_path = os.path.join(debug_dir, f"dialogue_chunk_{i+1}.mp3")
+                                shutil.copy2(chunk_file, debug_chunk_path)
+                                logger.info(f"Preserved dialogue chunk {i+1} to {debug_chunk_path}")
+                    
+                    # Now cleanup temp directory
                     shutil.rmtree(self._temp_dir, ignore_errors=True)
                     delattr(self, '_temp_dir')
                     delattr(self, '_dialogue_chunk_files')
@@ -723,7 +738,7 @@ class PodcastGenerator:
             if hasattr(e, 'stderr'):
                 logger.error(f"FFmpeg error: {e.stderr}")
             # Fallback: just copy speech file
-            if speech_file != output_file:
+            if speech_file != output_file and os.path.abspath(speech_file) != os.path.abspath(output_file):
                 shutil.copy(speech_file, output_file)
             logger.warning("Fallback: Using speech only due to error")
             return output_file

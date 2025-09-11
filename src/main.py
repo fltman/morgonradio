@@ -118,25 +118,50 @@ class MorgonPoddService:
             intro_settings = self.config.get('podcastSettings', {}).get('intro', {})
             crossfade_duration = intro_settings.get('crossfade_duration', 1.5)  # 1.5 seconds crossfade
             
-            # Create smooth crossfade transition from intro to main content
-            # The intro fades out while the main content fades in
+            # Pre-normalize both files to avoid frame padding issues
+            # Save normalized files in episodes directory for debugging
+            timestamp_debug = datetime.now().strftime("%Y%m%d_%H%M%S")
+            intro_norm = f"episodes/debug_intro_norm_{timestamp_debug}.wav"
+            main_norm = f"episodes/debug_main_norm_{timestamp_debug}.wav"
+            
+            # Normalize intro to stereo 44.1kHz WAV
+            subprocess.run([
+                'ffmpeg', '-y', '-i', intro_file,
+                '-acodec', 'pcm_s16le', '-ar', '44100', '-ac', '2',
+                intro_norm
+            ], check=True, capture_output=True)
+            
+            # Normalize main to stereo 44.1kHz WAV  
+            subprocess.run([
+                'ffmpeg', '-y', '-i', main_file,
+                '-acodec', 'pcm_s16le', '-ar', '44100', '-ac', '2', 
+                main_norm
+            ], check=True, capture_output=True)
+            
+            # Now create crossfade with normalized files
             cmd = [
-                'ffmpeg', '-i', intro_file, '-i', main_file,
+                'ffmpeg', '-i', intro_norm, '-i', main_norm,
                 '-filter_complex', 
                 f'[0:a]afade=t=out:st=end-{crossfade_duration}:d={crossfade_duration}[intro_fade];'
                 f'[1:a]afade=t=in:st=0:d={crossfade_duration}[main_fade];'
                 f'[intro_fade][main_fade]concat=n=2:v=0:a=1[out]',
-                '-map', '[out]', '-y', output_file
+                '-map', '[out]', '-acodec', 'libmp3lame', '-ar', '44100', '-ac', '2',
+                '-y', output_file
             ]
             
             subprocess.run(cmd, check=True, capture_output=True)
             logger.info(f"Combined episode with crossfade transition created: {output_file}")
             
-            # Clean up temporary files
-            if os.path.exists(intro_file):
-                os.remove(intro_file)
-            if os.path.exists(main_file) and main_file != output_file:
-                os.remove(main_file)
+            # Keep temporary files for debugging - don't clean up yet
+            logger.info(f"Preserved files for debugging:")
+            logger.info(f"  Intro file: {intro_file}")
+            logger.info(f"  Main file: {main_file}")
+            logger.info(f"  Combined file: {output_file}")
+            # TODO: Remove cleanup to allow inspection of intermediate files
+            # if os.path.exists(intro_file):
+            #     os.remove(intro_file)
+            # if os.path.exists(main_file) and main_file != output_file:
+            #     os.remove(main_file)
             
             return output_file
             
@@ -145,23 +170,49 @@ class MorgonPoddService:
             
             # Fallback to simple concatenation without crossfade
             try:
+                # Use same two-step normalization approach for consistency
+                # Save normalized files in episodes directory for debugging
+                timestamp_debug_fb = datetime.now().strftime("%Y%m%d_%H%M%S")
+                intro_norm_fb = f"episodes/debug_intro_norm_fb_{timestamp_debug_fb}.wav"
+                main_norm_fb = f"episodes/debug_main_norm_fb_{timestamp_debug_fb}.wav"
+                
+                # Normalize both files to stereo 44.1kHz WAV
+                subprocess.run([
+                    'ffmpeg', '-y', '-i', intro_file,
+                    '-acodec', 'pcm_s16le', '-ar', '44100', '-ac', '2',
+                    intro_norm_fb
+                ], check=True, capture_output=True)
+                
+                subprocess.run([
+                    'ffmpeg', '-y', '-i', main_file,
+                    '-acodec', 'pcm_s16le', '-ar', '44100', '-ac', '2', 
+                    main_norm_fb
+                ], check=True, capture_output=True)
+                
+                # Simple concatenation with normalized files
                 cmd = [
-                    'ffmpeg', '-i', intro_file, '-i', main_file,
+                    'ffmpeg', '-i', intro_norm_fb, '-i', main_norm_fb,
                     '-filter_complex', '[0:a][1:a]concat=n=2:v=0:a=1[out]',
-                    '-map', '[out]', '-y', output_file
+                    '-map', '[out]', '-acodec', 'libmp3lame', '-ar', '44100', '-ac', '2',
+                    '-y', output_file
                 ]
                 subprocess.run(cmd, check=True, capture_output=True)
                 logger.info(f"Combined episode created (fallback): {output_file}")
                 
-                # Clean up temporary files
-                if os.path.exists(intro_file):
-                    os.remove(intro_file)
-                if os.path.exists(main_file) and main_file != output_file:
-                    os.remove(main_file)
+                # Keep temporary files for debugging - don't clean up yet
+                logger.info(f"Preserved files for debugging (fallback):")
+                logger.info(f"  Intro file: {intro_file}")
+                logger.info(f"  Main file: {main_file}")
+                logger.info(f"  Combined file: {output_file}")
+                # TODO: Remove cleanup to allow inspection of intermediate files
+                # if os.path.exists(intro_file):
+                #     os.remove(intro_file)
+                # if os.path.exists(main_file) and main_file != output_file:
+                #     os.remove(main_file)
                 
                 return output_file
-            except:
-                logger.error("Fallback concatenation also failed")
+            except Exception as fallback_error:
+                logger.error(f"Fallback concatenation also failed: {fallback_error}")
                 return main_file
     
     def run_scheduled(self):
