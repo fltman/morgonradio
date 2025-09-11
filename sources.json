@@ -101,7 +101,7 @@
       }
     ],
     "promptTemplates": {
-      "main_prompt": "Du skapar ett naturligt samtal mellan {host1_name} och {host2_name}, två professionella poddvärdar.\n\n{host1_name}: {host1_personality}\n{host2_name}: {host2_personality}\n\nSkapa ett engagerande samtal där värdarna diskuterar dagens nyheter på ett naturligt sätt.",
+      "main_prompt": "Du skapar ett naturligt samtal mellan {host1_name} och {host2_name}, två professionella poddvärdar.\n\n{host1_name}: {host1_personality}\n{host2_name}: {host2_personality}\n\nSkapa ett engagerande samtal där värdarna diskuterar dagens nyheter på ett naturligt sätt. \n\nInnan du ger mig skriptet kontrollera att språket i manuset är korrekt och flyter på bra samt att musikavbrotten är placerade på lämpliga ställen.",
       "conversation_style": "natural_dialogue"
     },
     "textToDialogue": {

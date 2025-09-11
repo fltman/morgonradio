@@ -1,148 +1,355 @@
-# Morgonpodd 🎙️
+# 🎙️ Morgonpodd - Automatiserad Svensk Podcast Generator
 
-En automatiserad podcast-tjänst som skapar dagliga nyhetssammanfattningar med AI och text-till-tal.
+En AI-driven tjänst som automatiskt genererar dagliga svenska podcast-avsnitt med två värdar, musikintegration och RSS-distribution via Cloudflare R2.
 
-## Funktioner
+## ✨ Funktioner
 
-- 🔍 **Automatisk innehållsinhämtning** från flera nyhetskällor
-- 🤖 **AI-driven sammanfattning** med OpenAI GPT-4
-- 🗣️ **Naturlig röstsyntes** med ElevenLabs
-- 📡 **RSS-feed** för podcastappar
-- ☁️ **Cloudflare R2** för hosting
-- ⏰ **Schemalagd generering** varje morgon
+- **🤖 Två AI-värdar**: Anna & Erik med naturlig konversation
+- **📰 Multi-källa nyheter**: Samlar innehåll från svenska och internationella nyhetskällor
+- **🎵 Musikintegration**: Automatisk intro, outro och övergångsmusik
+- **🗣️ Naturligt tal**: ElevenLabs text-to-dialogue API för realistiska samtal
+- **📡 RSS-distribution**: Automatisk RSS-feed generering och hosting på Cloudflare R2
+- **🌤️ Väderuppdateringar**: Inkluderar lokal väderinformation
+- **🎛️ Webbgränssnitt**: Streamlit-baserad kontrollpanel för konfiguration
 
-## Installation
+## 📋 Förutsättningar
 
-### 1. Klona projektet och installera
+- Python 3.8 eller högre
+- macOS, Linux eller Windows
+- FFmpeg installerat (`brew install ffmpeg` på macOS)
+- API-nycklar för OpenAI och ElevenLabs
+- Cloudflare-konto med R2 storage
+
+## 🚀 Installation
+
+### 1. Klona repository
 
 ```bash
-# Kör setup-scriptet
-chmod +x setup.sh
-./setup.sh
+git clone https://github.com/fltman/morgonradio.git
+cd morgonpodd
 ```
 
-### 2. Konfigurera API-nycklar
+### 2. Sätt upp Python-miljö
 
-Redigera `.env` med dina nycklar:
+```bash
+# Skapa virtuell miljö
+python3 -m venv venv
+
+# Aktivera virtuell miljö
+source venv/bin/activate  # På macOS/Linux
+# eller
+venv\Scripts\activate  # På Windows
+
+# Installera beroenden
+pip install -r requirements.txt
+```
+
+### 3. Konfigurera miljövariabler
+
+Kopiera exempelfilen och redigera den:
+
+```bash
+cp .env.example .env
+```
+
+Redigera `.env` med dina API-nycklar och inställningar:
 
 ```env
-# OpenAI för sammanfattning
-OPENAI_API_KEY=sk-...
+# OpenAI API (Krävs)
+OPENAI_API_KEY=din_openai_api_nyckel_här
 
-# ElevenLabs för röstsyntes
-ELEVENLABS_API_KEY=...
-ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM
+# ElevenLabs API (Krävs)
+ELEVENLABS_API_KEY=din_elevenlabs_api_nyckel_här
+ELEVENLABS_VOICE_ID=21m00Tcm4TlvDq8ikWAM  # Rachel röst, eller välj annan
 
-# Cloudflare R2
-CLOUDFLARE_ACCOUNT_ID=...
-CLOUDFLARE_ACCESS_KEY_ID=...
-CLOUDFLARE_SECRET_ACCESS_KEY=...
+# Cloudflare R2 (Krävs för publicering)
+CLOUDFLARE_ACCOUNT_ID=ditt_konto_id_här
+CLOUDFLARE_ACCESS_KEY_ID=din_access_key_id_här
+CLOUDFLARE_SECRET_ACCESS_KEY=din_secret_access_key_här
 CLOUDFLARE_R2_BUCKET=morgonpodd
 CLOUDFLARE_R2_PUBLIC_URL=https://morgonpodd.din-doman.com
 ```
 
-### 3. Anpassa källor
+## ☁️ Cloudflare R2 Setup - Steg för steg
 
-Redigera `sources.json` för att välja nyhetskällor:
+### Steg 1: Skapa ett Cloudflare-konto
+
+1. Gå till [cloudflare.com](https://cloudflare.com)
+2. Klicka på **"Sign Up"** och skapa ett gratis konto
+3. Verifiera din e-postadress
+
+### Steg 2: Aktivera R2 Storage
+
+1. Logga in på din Cloudflare dashboard
+2. I vänstermenyn, klicka på **"R2"**
+3. Om R2 inte är aktiverat, klicka **"Enable R2"**
+4. Acceptera villkoren (R2 har en generös gratis-nivå)
+
+### Steg 3: Skapa en Bucket
+
+1. I R2 dashboard, klicka **"Create bucket"**
+2. Välj ett bucket-namn (t.ex. `morgonpodd`)
+   - Måste vara globalt unikt
+   - Använd endast små bokstäver, siffror och bindestreck
+3. Välj en region nära din målgrupp (t.ex. "EEUR" för Europa)
+4. Klicka **"Create bucket"**
+
+### Steg 4: Gör Bucket Publik
+
+1. Klicka på ditt bucket-namn
+2. Gå till fliken **"Settings"**
+3. Under **"Public Access"**, klicka **"Allow public access"**
+4. Välj ett av följande alternativ:
+
+#### Alternativ A: Använd R2 Standard URL (Utan egen domän)
+Om du inte har en egen domän eller vill komma igång snabbt:
+1. Efter att du aktiverat public access får du automatiskt en R2 dev URL
+2. URL-formatet blir: `https://[bucket-namn].[konto-hash].r2.dev`
+3. Exempel: `https://morgonpodd.abc123xyz.r2.dev`
+4. Denna URL fungerar direkt utan ytterligare konfiguration
+5. **Fördelar**: Ingen DNS-konfiguration krävs, fungerar omedelbart
+6. **Nackdelar**: Längre och mindre minnesvärd URL
+
+#### Alternativ B: Anslut egen domän (Rekommenderas för produktion)
+Om du har en egen domän:
+1. Klicka **"Connect Domain"**
+2. Ange en subdomän som `podcast.dindoman.se`
+3. Följ DNS-konfigurationsinstruktionerna
+4. Vänta 5-10 minuter på DNS-propagering
+5. **Fördelar**: Kort, professionell URL som är lätt att dela
+6. **Nackdelar**: Kräver domän och DNS-konfiguration
+
+### Steg 5: Skaffa API-uppgifter
+
+1. Gå till **"R2"** → **"Manage R2 API tokens"**
+2. Klicka **"Create API token"**
+3. Konfigurera token:
+   - **Token name**: `morgonpodd-token`
+   - **Permissions**: Välj **"Admin Read & Write"** för Object Read & Write
+   - **Specify bucket**: Välj din bucket (`morgonpodd`)
+   - **TTL**: Lämna som standard eller sätt utgångsdatum
+4. Klicka **"Create API Token"**
+5. **VIKTIGT**: Spara dessa uppgifter omedelbart (de visas bara en gång):
+   - **Access Key ID** → Kopiera till `CLOUDFLARE_ACCESS_KEY_ID`
+   - **Secret Access Key** → Kopiera till `CLOUDFLARE_SECRET_ACCESS_KEY`
+   - **Account ID** (visas i URL eller R2 dashboard) → Kopiera till `CLOUDFLARE_ACCOUNT_ID`
+
+### Steg 6: Notera din publika URL
+
+**För Alternativ A (R2 Standard URL):**
+1. Gå till din bucket i Cloudflare dashboard
+2. Under fliken "Settings" hittar du din dev URL
+3. Kopiera URL:en som ser ut som: `https://morgonpodd.abc123xyz.r2.dev`
+4. Lägg till denna i `.env` som `CLOUDFLARE_R2_PUBLIC_URL=https://morgonpodd.abc123xyz.r2.dev`
+
+**För Alternativ B (Egen domän):**
+1. Använd din anpassade URL: `https://podcast.dindoman.se`
+2. Lägg till denna i `.env` som `CLOUDFLARE_R2_PUBLIC_URL=https://podcast.dindoman.se`
+
+**Viktigt att komma ihåg:**
+- R2 dev URL:er ändras aldrig och fungerar direkt
+- De är säkra att använda för produktion
+- Din podcast kommer vara tillgänglig på `[din-url]/feed.xml`
+
+## 🎯 Användning
+
+### Generera ett enskilt avsnitt
+
+```bash
+python src/main.py
+```
+
+### Kör på schema (Dagligen kl 06:00)
+
+```bash
+python src/main.py schedule
+```
+
+### Webbgränssnitt
+
+```bash
+streamlit run src/enhanced_gui.py
+```
+
+Öppna sedan http://localhost:8501 i din webbläsare.
+
+### Sätt upp automatisk daglig generering (Cron)
+
+```bash
+# Redigera crontab
+crontab -e
+
+# Lägg till denna rad för daglig generering kl 06:00
+0 6 * * * cd /sökväg/till/morgonpodd && /sökväg/till/venv/bin/python src/main.py
+```
+
+## 📁 Projektstruktur
+
+```
+morgonpodd/
+├── src/
+│   ├── main.py              # Huvudorkestrator
+│   ├── scraper.py           # Nyhetsscraper
+│   ├── summarizer.py        # AI-skriptgenerator
+│   ├── tts_generator.py     # Text-till-tal med ElevenLabs
+│   ├── rss_generator.py     # RSS-feed skapare
+│   ├── cloudflare_uploader.py # R2 upload-hanterare
+│   ├── music_library.py     # Musikhantering
+│   └── enhanced_gui.py      # Webbgränssnitt
+├── sources.json             # Nyhetskällor konfiguration
+├── episodes/                # Genererade ljudfiler
+├── scripts/                 # Genererade textskript
+├── music/                   # Musikbibliotek
+└── public/                  # Statiska filer (RSS, bilder)
+```
+
+## ⚙️ Konfiguration
+
+### Nyhetskällor
+
+Redigera `sources.json` för att lägga till/ta bort nyhetskällor:
 
 ```json
 {
   "sources": [
     {
       "name": "SVT Nyheter",
-      "url": "https://www.svt.se/nyheter/",
+      "url": "https://www.svt.se/nyheter/rss.xml",
       "type": "news",
-      "selector": "article h2",
-      "maxItems": 5
+      "format": "rss",
+      "maxItems": 5,
+      "enabled": true
     }
   ]
 }
 ```
 
-## Användning
+### Podcast-värdar
 
-### Generera ett avsnitt
+Konfigurera värdpersonligheter i `sources.json`:
 
+```json
+{
+  "podcastSettings": {
+    "hosts": [
+      {
+        "name": "Anna",
+        "voice_id": "xc1ryI9pRbBLNr6aTJET",
+        "personality": "Energisk och positiv morgonvärd",
+        "style": "konversationell och varm"
+      },
+      {
+        "name": "Erik",
+        "voice_id": "iwNZQzqCFIBqLR6sgFpN",
+        "personality": "Analytisk och noggrann, teknikspecialist",
+        "style": "informativ men lättsam"
+      }
+    ]
+  }
+}
+```
+
+## 🎵 Lägga till musik
+
+1. Placera MP3-filer i `music/` katalogen
+2. Organisera efter kategori:
+   - `music/intro/` - Öppningsmusik
+   - `music/outro/` - Avslutningsmusik
+   - `music/transition/` - Mellan segment
+3. Uppdatera `music_library.json` eller använd webbgränssnittet
+
+## 📱 Prenumerera på din podcast
+
+När den är publicerad kommer din podcast finnas tillgänglig på:
+- **RSS Feed**: `https://din-doman.com/feed.xml`
+- **Webbspelare**: `https://din-doman.com/`
+
+Lägg till i podcast-appar:
+- **Apple Podcasts**: Sök → Lägg till via URL → Klistra in RSS URL
+- **Spotify**: Skicka in via Spotify for Podcasters
+- **Google Podcasts**: Inställningar → Lägg till via RSS
+- **Overcast/Pocket Casts**: Lägg till → Lägg till via URL
+
+## 🔧 Felsökning
+
+### Vanliga problem
+
+**FFmpeg-fel under ljudbearbetning:**
 ```bash
-# Aktivera virtual environment
-source venv/bin/activate
-
-# Generera ett avsnitt
-python src/main.py
+# Se till att FFmpeg är installerat
+brew install ffmpeg  # macOS
+apt-get install ffmpeg  # Ubuntu/Debian
 ```
 
-### Kör på schema
+**Saknade chunks i slutgiltigt avsnitt:**
+- Kontrollera `episodes/debug_chunks_*/` för alla chunk-filer
+- Verifiera musikpositioner i loggar
+- Se till att `maxCharsPerChunk` är satt till 1500 i `sources.json`
 
+**API-hastighetsbegränsningar:**
+- OpenAI: Implementera fördröjningar mellan förfrågningar
+- ElevenLabs: Kontrollera din plans teckengränser
+
+**Cloudflare R2 uppladdningsfel:**
+- Verifiera att bucket existerar och är publik
+- Kontrollera att API-uppgifterna är korrekta
+- Se till att bucket-namnet matchar i `.env`
+
+### Debug-läge
+
+Visa detaljerade loggar:
 ```bash
-# Kör tjänsten med schemaläggning
-python src/main.py schedule
+python src/main.py 2>&1 | tee debug.log
 ```
 
-### Automatisk körning med cron
+## 📊 Övervakning
 
-Lägg till i crontab för daglig generering kl 06:00:
+- **Avsnitt**: Kontrollera `episodes/` katalogen
+- **Skript**: Granska `scripts/` för genererat innehåll
+- **Loggar**: Övervaka konsoloutput eller loggfiler
+- **RSS Feed**: Verifiera på `[publik-url]/feed.xml`
 
-```bash
-crontab -e
+## 🤝 Bidra
 
-# Lägg till:
-0 6 * * * cd /path/to/morgonpodd && venv/bin/python src/main.py
-```
+1. Forka repository
+2. Skapa en feature-branch
+3. Gör dina ändringar
+4. Testa noggrant
+5. Skicka in en pull request
 
-## Cloudflare R2 Setup
+## 📄 Licens
 
-1. Skapa ett R2-bucket i Cloudflare Dashboard
-2. Aktivera public access för bucket
-3. Konfigurera en custom domain
-4. Skapa API-tokens med R2 read/write permissions
-5. Uppdatera `.env` med dina credentials
+MIT License - Se LICENSE-filen för detaljer
 
-## Struktur
+## 🙏 Tack till
 
-```
-morgonpodd/
-├── src/
-│   ├── scraper.py         # Innehållsinhämtning
-│   ├── summarizer.py      # AI-sammanfattning
-│   ├── tts_generator.py   # Röstgenerering
-│   ├── rss_generator.py   # RSS-feed
-│   ├── cloudflare_uploader.py  # Upload till R2
-│   └── main.py           # Huvudprogram
-├── episodes/             # Genererade avsnitt
-├── scripts/             # Podcast-manus
-├── public/              # Statiska filer
-├── sources.json         # Konfiguration
-└── .env                # API-nycklar
-```
+- **OpenAI GPT-4** - Innehållsgenerering
+- **ElevenLabs** - Text-till-tal
+- **Cloudflare R2** - Lagring och distribution
+- **Streamlit** - Webbgränssnitt
 
-## API-kostnader
+## 📞 Support
 
-- **OpenAI**: ~$0.01-0.02 per avsnitt
-- **ElevenLabs**: ~10,000 tecken per avsnitt
-- **Cloudflare R2**: Gratis för små volymer
+- GitHub Issues: [github.com/fltman/morgonradio/issues](https://github.com/fltman/morgonradio/issues)
+- Dokumentation: Se `/docs` mappen
 
-## RSS-feed
+## 💡 Tips
 
-Podden blir tillgänglig på:
-- RSS: `https://din-doman.com/feed.xml`
-- Webbsida: `https://din-doman.com`
+### Optimera för svenska lyssnare
+- Använd svenska nyhetskällor primärt
+- Anpassa genererings-tid till svensk morgon (06:00 CET)
+- Inkludera svensk väderinformation
 
-Prenumerera i valfri poddapp genom att lägga till RSS-länken.
+### Kostnadsoptimering
+- Begränsa antal nyhetskällor för att minska API-kostnader
+- Använd kortare sammanfattningar (justera i `sources.json`)
+- Övervaka ElevenLabs teckenanvändning
 
-## Felsökning
+### Förbättra innehållet
+- Experimentera med olika värdpersonligheter
+- Lägg till lokal musik för unik känsla
+- Anpassa prompt-mallar för din målgrupp
 
-### Problem med scraping
-- Kontrollera att CSS-selektorerna i `sources.json` stämmer
-- Vissa sajter kan kräva Selenium istället för requests
+---
 
-### Audio-generering misslyckas
-- Verifiera ElevenLabs API-nyckel och voice ID
-- Kontrollera att du har krediter kvar
-
-### Upload misslyckas
-- Verifiera Cloudflare R2 credentials
-- Kontrollera bucket-namnet och permissions
-
-## Licens
-
-MIT
+Skapad med ❤️ för automatiserad svensk podcast-produktion
