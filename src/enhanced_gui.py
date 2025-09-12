@@ -1355,8 +1355,19 @@ def manage_unix_cron_job(enabled, time_str, days_of_week):
             python_path = sys.executable
             project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             
-            # Create cron entry with comment for identification
-            cron_entry = f"{minute} {hour} * * {days_str} cd {project_path} && {python_path} src/main.py >> episodes/cron.log 2>&1 # morgonpodd-auto"
+            # Create cron entry with proper PATH and comment for identification
+            # Get current PATH and add common tool locations
+            current_path = os.environ.get('PATH', '/usr/local/bin:/usr/bin:/bin')
+            # Add common locations for ffmpeg and other tools
+            additional_paths = ['/opt/homebrew/bin', '/usr/local/bin', '/opt/local/bin']
+            path_parts = current_path.split(':')
+            for additional in additional_paths:
+                if additional not in path_parts:
+                    path_parts.insert(0, additional)
+            full_path = ':'.join(path_parts)
+            
+            # Create cron entry with PATH set for ffmpeg and other tools
+            cron_entry = f"{minute} {hour} * * {days_str} cd {project_path} && PATH={full_path} {python_path} src/main.py >> episodes/cron.log 2>&1 # morgonpodd-auto"
             cron_lines.append(cron_entry)
             
             message = f"✅ Cron job created for {time_str} on selected days"
