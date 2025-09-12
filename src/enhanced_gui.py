@@ -1107,6 +1107,53 @@ def show_episode_scheduling(config):
         else:
             st.error(f"❌ Schedule saved but automatic task failed: {message}")
     
+    # Show current cron status for debugging
+    if st.checkbox("🔧 Show Cron Debugging Info", value=False):
+        st.write("**Current Crontab Analysis:**")
+        try:
+            import subprocess
+            result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
+            if result.returncode == 0:
+                st.text("All cron jobs:")
+                st.code(result.stdout if result.stdout else "(empty)")
+                
+                # Show what would be preserved vs removed
+                morgonpodd_lines = []
+                other_lines = []
+                
+                for line in result.stdout.split('\n'):
+                    line_stripped = line.strip()
+                    if not line_stripped:
+                        continue
+                        
+                    if line_stripped.startswith('#'):
+                        if 'morgonpodd' in line_stripped.lower():
+                            morgonpodd_lines.append(line)
+                        else:
+                            other_lines.append(line)
+                        continue
+                        
+                    # Check cron job lines
+                    morgonpodd_indicators = ['morgonpodd-auto', '/morgonpodd/', 'main.py', 'src/main.py']
+                    indicator_count = sum(1 for indicator in morgonpodd_indicators if indicator in line)
+                    
+                    if indicator_count >= 2:
+                        morgonpodd_lines.append(line)
+                    else:
+                        other_lines.append(line)
+                
+                if morgonpodd_lines:
+                    st.write("**Morgonpodd entries (would be managed):**")
+                    st.code('\n'.join(morgonpodd_lines))
+                
+                if other_lines:
+                    st.write("**Other entries (would be preserved):**")
+                    st.code('\n'.join(other_lines))
+            else:
+                st.text("No crontab found or error reading crontab")
+        except Exception as e:
+            st.error(f"Error reading crontab: {e}")
+
     # Manual schedule controls
     st.divider()
     col1, col2, col3 = st.columns(3)
@@ -1253,9 +1300,42 @@ def manage_unix_cron_job(enabled, time_str, days_of_week):
         result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
         current_cron = result.stdout if result.returncode == 0 else ""
         
-        # Filter out existing morgonpodd entries
-        cron_lines = [line for line in current_cron.split('\n') 
-                     if line and 'morgonpodd' not in line.lower()]
+        # Filter out existing morgonpodd entries while preserving all other cron jobs
+        cron_lines = []
+        for line in current_cron.split('\n'):
+            original_line = line
+            line_stripped = line.strip()
+            
+            # Skip empty lines that were originally empty
+            if not line_stripped:
+                if original_line:  # Preserve original spacing/empty lines
+                    cron_lines.append(original_line)
+                continue
+                
+            # Preserve comments unless they're morgonpodd related
+            if line_stripped.startswith('#'):
+                if 'morgonpodd' not in line_stripped.lower():
+                    cron_lines.append(original_line)
+                continue
+                
+            # For cron job lines, check if they're morgonpodd related
+            # Look for multiple indicators to safely identify our entries
+            is_morgonpodd = False
+            morgonpodd_indicators = [
+                'morgonpodd-auto',  # Our comment tag
+                '/morgonpodd/',     # Path contains morgonpodd
+                'main.py',          # Our script name
+                'src/main.py'       # Our script path
+            ]
+            
+            # Only consider it morgonpodd if it has multiple indicators
+            indicator_count = sum(1 for indicator in morgonpodd_indicators if indicator in line)
+            if indicator_count >= 2:
+                is_morgonpodd = True
+                
+            # Preserve all non-morgonpodd cron jobs
+            if not is_morgonpodd:
+                cron_lines.append(original_line)
         
         if enabled and days_of_week:
             # Parse time
@@ -1283,11 +1363,13 @@ def manage_unix_cron_job(enabled, time_str, days_of_week):
         else:
             message = "📅 Cron job removed (scheduling disabled)"
         
-        # Write new crontab
+        # Write new crontab preserving original formatting
         with tempfile.NamedTemporaryFile(mode='w', suffix='.cron', delete=False) as f:
-            f.write('\n'.join(cron_lines))
-            if cron_lines and cron_lines[-1]:  # Add final newline if content exists
-                f.write('\n')
+            for line in cron_lines:
+                f.write(line + '\n')
+            # Cron files should end with newline
+            if cron_lines:  # Only add extra newline if we have content
+                f.write('')  # This ensures proper ending
             temp_file = f.name
         
         # Install new crontab
@@ -1327,7 +1409,23 @@ def check_unix_cron_job_exists():
         import subprocess
         result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
         if result.returncode == 0:
-            return 'morgonpodd' in result.stdout.lower()
+            # Look for our specific morgonpodd cron job using same logic as removal
+            for line in result.stdout.split('\n'):
+                line_stripped = line.strip()
+                if not line_stripped or line_stripped.startswith('#'):
+                    continue
+                    
+                # Check for morgonpodd indicators
+                morgonpodd_indicators = [
+                    'morgonpodd-auto',  # Our comment tag
+                    '/morgonpodd/',     # Path contains morgonpodd
+                    'main.py',          # Our script name
+                    'src/main.py'       # Our script path
+                ]
+                
+                indicator_count = sum(1 for indicator in morgonpodd_indicators if indicator in line)
+                if indicator_count >= 2:
+                    return True
         return False
     except:
         return False
