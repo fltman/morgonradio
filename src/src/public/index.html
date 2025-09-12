@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morgonpodd - Din dagliga nyhetssammanfattning</title>
+    <meta name="description" content="En automatiskt genererad morgonpodd med dagens viktigaste nyheter, teknik och väder">
+    
+    <!-- Podcast RSS Feed -->
+    <link rel="alternate" type="application/rss+xml" title="Morgonpodd RSS" href="/feed.xml">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 20px;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        
+        .logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .tagline {
+            color: #666;
+            font-size: 1.1em;
+            margin-bottom: 30px;
+        }
+        
+        .subscribe-section {
+            background: #f7f7f7;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #444;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        
+        .podcast-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .podcast-link {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            text-decoration: none;
+            color: #333;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid #e0e0e0;
+        }
+        
+        .podcast-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-color: #667eea;
+        }
+        
+        .podcast-link .icon {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+        
+        .rss-url {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.9em;
+            word-break: break-all;
+            color: #666;
+        }
+        
+        .latest-episodes {
+            margin-top: 30px;
+        }
+        
+        .episode {
+            border-left: 3px solid #667eea;
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .episode-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .episode-date {
+            color: #999;
+            font-size: 0.9em;
+        }
+        
+        .info {
+            text-align: center;
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        
+        .audio-player {
+            width: 100%;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <img src="/logo.png" alt="Morgonpodd">
+            </div>
+            <h1>Morgonpodd</h1>
+            <p class="tagline">Din dagliga dos av nyheter, teknik och väder</p>
+        </div>
+        
+        <div class="subscribe-section">
+            <h2>🎧 Prenumerera</h2>
+            
+            <div class="podcast-links">
+                <a href="podcast://DOMAIN/feed.xml" class="podcast-link">
+                    <div class="icon">📱</div>
+                    <div>Apple Podcasts</div>
+                </a>
+                
+                <a href="https://www.google.com/podcasts?feed=FEED_URL" class="podcast-link">
+                    <div class="icon">🎵</div>
+                    <div>Google Podcasts</div>
+                </a>
+            </div>
+            
+            <p style="margin-bottom: 10px; color: #666;">RSS-feed för andra poddappar:</p>
+            <div class="rss-url" id="rss-url">https://din-doman.com/feed.xml</div>
+        </div>
+        
+        <div class="latest-episodes">
+            <h2>📻 Senaste avsnitten</h2>
+            <div id="episodes">
+                <p style="color: #999;">Laddar avsnitt...</p>
+            </div>
+        </div>
+        
+        <div class="info">
+            <p>Nya avsnitt publiceras varje morgon kl 06:00</p>
+            <p>Driven av AI • Uppdateras automatiskt</p>
+        </div>
+    </div>
+    
+    <script>
+        // Update RSS URL
+        const currentUrl = window.location.origin;
+        document.getElementById('rss-url').textContent = currentUrl + '/feed.xml';
+        
+        // Update podcast links
+        document.querySelectorAll('.podcast-link').forEach(link => {
+            const href = link.getAttribute('href');
+            if (href.includes('DOMAIN')) {
+                link.setAttribute('href', href.replace('DOMAIN', window.location.host));
+            }
+            if (href.includes('FEED_URL')) {
+                link.setAttribute('href', href.replace('FEED_URL', encodeURIComponent(currentUrl + '/feed.xml')));
+            }
+        });
+        
+        // Load episodes from feed.json
+        fetch('/feed.json')
+            .then(res => res.json())
+            .then(data => {
+                const episodesDiv = document.getElementById('episodes');
+                if (data.episode_count > 0) {
+                    episodesDiv.innerHTML = `
+                        <div class="episode">
+                            <div class="episode-title">Senaste avsnittet</div>
+                            <div class="episode-date">Uppdaterad: ${new Date(data.last_updated).toLocaleDateString('sv-SE')}</div>
+                        </div>
+                        <p style="color: #666; margin-top: 10px;">
+                            Totalt ${data.episode_count} avsnitt tillgängliga
+                        </p>
+                    `;
+                } else {
+                    episodesDiv.innerHTML = '<p style="color: #999;">Inga avsnitt publicerade än</p>';
+                }
+            })
+            .catch(err => {
+                console.error('Could not load episodes:', err);
+            });
+    </script>
+</body>
+</html>

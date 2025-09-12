@@ -1,52 +1,57 @@
 {
   "tracks": {
-    "unknown_i_am_light": {
-      "id": "unknown_i_am_light",
-      "artist": "unknown",
-      "title": "I am light",
-      "filename": "unknown_i_am_light.mp3",
-      "path": "audio/music/unknown_i_am_light.mp3",
-      "categories": ["intro", "upbeat"],
-      "moods": ["upbeat", "mysterious"],
-      "duration": null,
-      "description": "Ljus och energisk bakgrundsmusik",
-      "added_at": "2025-09-09T20:59:55.876473",
-      "file_size": 5657776
-    },
-    "unknown_i_am_light_without_a_source": {
-      "id": "unknown_i_am_light_without_a_source",
+    "088d314d": {
+      "id": "088d314d",
       "artist": "unknown",
       "title": "I am light without a source",
-      "filename": "unknown_i_am_light_without_a_source.mp3",
-      "path": "audio/music/unknown_i_am_light_without_a_source.mp3",
-      "categories": ["transition", "tech"],
-      "moods": ["mysterious", "calm"],
+      "filename": "088d314d.mp3",
+      "path": "audio/music/088d314d.mp3",
+      "categories": [
+        "transition",
+        "tech"
+      ],
+      "moods": [
+        "mysterious",
+        "calm"
+      ],
       "duration": null,
       "description": "Mystisk och eftertänksam bakgrundsmusik",
       "added_at": "2025-09-09T21:00:36.128119",
       "file_size": 5657776
     },
-    "eternal_whisperers_im_the_pattern_you_designed": {
-      "id": "eternal_whisperers_im_the_pattern_you_designed",
+    "e5693973": {
+      "id": "e5693973",
       "artist": "eternal whisperers",
       "title": "im the pattern you designed",
-      "filename": "eternal_whisperers_im_the_pattern_you_designed.mp3",
-      "path": "audio/music/eternal_whisperers_im_the_pattern_you_designed.mp3",
-      "categories": ["tech", "news"],
-      "moods": ["serious", "dramatic"],
+      "filename": "e5693973.mp3",
+      "path": "audio/music/e5693973.mp3",
+      "categories": [
+        "tech",
+        "news"
+      ],
+      "moods": [
+        "serious",
+        "dramatic"
+      ],
       "duration": null,
       "description": "Dramatisk och djup bakgrundsmusik för seriösa ämnen",
       "added_at": "2025-09-09T21:01:25.106944",
       "file_size": 5854101
     },
-    "deepseek_hello_human": {
-      "id": "deepseek_hello_human",
+    "9858802e": {
+      "id": "9858802e",
       "artist": "deepseek",
       "title": "hello human",
-      "filename": "deepseek_hello_human.mp3",
-      "path": "audio/music/deepseek_hello_human.mp3",
-      "categories": ["weather", "outro"],
-      "moods": ["calm", "playful"],
+      "filename": "9858802e.mp3",
+      "path": "audio/music/9858802e.mp3",
+      "categories": [
+        "weather",
+        "outro"
+      ],
+      "moods": [
+        "calm",
+        "playful"
+      ],
       "duration": null,
       "description": "Vänlig och avslappnande musik för avslutningar",
       "added_at": "2025-09-09T21:01:59.303198",

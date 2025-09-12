@@ -110,6 +110,47 @@ Skapa ett engagerande samtal där värdarna diskuterar dagens nyheter på ett na
         # Get music context
         music_context = self.music_library.get_music_prompt_context()
         
+        # Get music instructions from config or use default
+        default_music_instructions = """OBLIGATORISK MUSIKINTEGRATION - Du MÅSTE inkludera musik enligt följande:
+   - KRÄVS: Öppna med intro-musik från kategori "intro": [MUSIK: artist - titel]
+   - KRÄVS: Minst 2 övergångsmusik mellan ämnen från kategori "transition": [MUSIK: artist - titel]
+   - KRÄVS: Passande bakgrundsmusik för olika ämnesområden (news, tech, weather)
+   - KRÄVS: Avsluta med outro-musik från kategori "outro": [MUSIK: artist - titel]
+   - VIKTIGT: Använd FULLSTÄNDIGA låtar (ingen tidsbegränsning)
+   - VIKTIGT: Varje låt får bara användas EN gång per avsnitt (inga dubbletter)
+   - Använd ENDAST artister och titlar som finns i den tillgängliga musiklistan ovan
+   - VIKTIGT: Värdarna ska ALDRIG kommentera eller presentera musiken - den ska bara spela naturligt
+   - Placera [MUSIK: artist - titel] mellan samtalsavsnitt eller när det passar naturligt"""
+        
+        music_instructions = self.config.get('podcastSettings', {}).get('music_instructions', default_music_instructions)
+        
+        # Get emotional design instructions from config or use default
+        default_emotional_design = """EMOTIONAL DESIGN FÖR NATURLIGT SAMTAL:
+Skapa ett samtal som utnyttjar ElevenLabs nya text-to-dialogue funktionalitet med följande emotionella variation:
+- EXCITED: För positiva nyheter, framgångshistorier, spännande upptäckter
+- LAUGHING: För roliga nyheter, humoristiska kommentarer, lättsammare inslag
+- CURIOUS: För intressanta tekniska nyheter, forskningsresultat, innovations
+- CONCERNED: För allvarliga nyheter, problem, varningar, kriser
+- SAD: För tragiska nyheter, sorgsna händelser
+- NEUTRAL: För analyser, faktabaserad information, objektiva rapporter
+- FRIENDLY: För hälsningar, övergångar, personliga kommentarer
+- SURPRISED: För överraskande nyheter, häpnadsväckande upptäckter
+- CONVERSATIONAL: Som bas för neutralt innehåll och naturliga övergångar
+
+OBS: Du kan markera emotionella partier med hakparenteser [excited], [laughing], etc. men använd sparsamt - endast för tydliga emotionella höjdpunkter.
+
+Instruktioner för optimerad text-to-dialogue:
+1. Skapa ett naturligt samtal mellan värdarna
+2. Variera emotionell ton baserat på innehåll - använd ord som indikerar känsla:
+   - "Det här är verkligen spännande..." (CURIOUS/EXCITED)
+   - "Det är oroande att höra..." (CONCERNED)
+   - "Enligt nya forskningsresultat..." (PROFESSIONAL)
+   - "Hej och välkommen..." (FRIENDLY)
+   - "Vädret idag visar..." (CALM)
+3. Låt värdarna reagera emotionellt passande på varandras kommentarer"""
+        
+        emotional_design = self.config.get('podcastSettings', {}).get('emotional_design', default_emotional_design)
+        
         prompt = f"""{formatted_prompt}
         
 TEMPORAL KONTEXT:
@@ -124,38 +165,12 @@ Dagens innehåll att diskutera:
 
 {music_context}
 
-EMOTIONAL DESIGN FÖR NATURLIGT SAMTAL:
-Skapa ett samtal som utnyttjar ElevenLabs nya text-to-dialogue funktionalitet med följande emotionella variation:
-- EXCITED: För positiva nyheter, framgångshistorier, spännande upptäckter
-- LAUGHING: För roliga nyheter, humoristiska kommentarer, lättsammare inslag
-- CURIOUS: För intressanta tekniska nyheter, forskningsresultat, innovations
-- CONCERNED: För allvarliga nyheter, problem, varningar, kriser
-- SAD: För tragiska nyheter, sorgsna händelser
-- NEUTRAL: För analyser, faktabaserad information, objektiva rapporter  
-- FRIENDLY: För hälsningar, övergångar, personliga kommentarer
-- SURPRISED: För överraskande nyheter, häpnadsväckande upptäckter
-- CONVERSATIONAL: Som bas för neutralt innehåll och naturliga övergångar
-
-OBS: Du kan markera emotionella partier med hakparenteser [excited], [laughing], etc. men använd sparsamt - endast för tydliga emotionella höjdpunkter.
-
-Instruktioner för optimerad text-to-dialogue:
-1. Skapa ett naturligt samtal mellan {host1['name']} och {host2['name']}
-2. Variera emotionell ton baserat på innehåll - använd ord som indikerar känsla:
-   - "Det här är verkligen spännande..." (CURIOUS/EXCITED)
-   - "Det är oroande att höra..." (CONCERNED) 
-   - "Enligt nya forskningsresultat..." (PROFESSIONAL)
-   - "Hej och välkommen..." (FRIENDLY)
-   - "Vädret idag visar..." (CALM)
-3. Låt värdarna reagera emotionellt passande på varandras kommentarer
+{emotional_design}
 4. Inkludera naturliga övergångar med emotionell förändring
 5. {host1['name']} börjar med energi anpassad till {time_context}
 6. {host2['name']} balanserar med analytisk men engagerad ton
 7. Använd format: "{host1['name']}: [text]" och "{host2['name']}: [text]"
-8. Integrera bakgrundsmusik strategiskt för att förbättra upplevelsen:
-   - Använd intro-musik vid öppning: [MUSIK: artist - titel, 5 sekunder]
-   - Lägg till övergångsmusik mellan olika ämnen: [MUSIK: artist - titel, 3 sekunder]  
-   - Använd passande bakgrundsmusik för olika ämnen (se tillgängliga kategorier)
-   - Avsluta med outro-musik: [MUSIK: artist - titel, 5 sekunder]
+8. {music_instructions}
 9. Anpassa språkstil och energi till {time_context} och {week_context}
 10. Skapa tydliga emotionella höjdpunkter och lugnare partier
 11. Referera naturligt till temporala element ({swedish_weekday}, {season})
@@ -168,10 +183,14 @@ Mål: Ett 8-12 minuters samtal som maximerar ElevenLabs emotionella röstteknolo
             return self.create_fallback_script(scraped_data)
         
         try:
+            # Get system prompt from config or use default
+            system_prompt = self.config.get('podcastSettings', {}).get('system_prompt', 
+                "Du är en professionell AI som hjälper till att skapa naturliga samtal mellan poddvärdar på svenska.")
+            
             response = self.client.chat.completions.create(
-                model="gpt-5",
+                model="gpt-5-mini",
                 messages=[
-                    {"role": "system", "content": "Du är en professionell AI som hjälper till att skapa naturliga samtal mellan poddvärdar på svenska."},
+                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ]
             )

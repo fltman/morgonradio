@@ -1,15 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(pip index versions:*)",
-      "Bash(git init:*)",
-      "Bash(git remote add:*)",
-      "Bash(chmod:*)",
-      "Bash(pip install:*)",
-      "Bash(source:*)",
-      "Bash(python:*)",
-      "Bash(git add:*)",
-      "Bash(git reset:*)"
+      "Bash(/Users/andersbj/miniconda3/bin/python:*)",
+      "Bash(lsof:*)",
+      "Bash(git add:*)"
     ],
     "deny": [],
     "ask": []

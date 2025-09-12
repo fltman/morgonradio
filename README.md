@@ -168,10 +168,10 @@ python src/main.py schedule
 ### Webbgränssnitt
 
 ```bash
-streamlit run src/enhanced_gui.py
+streamlit run src/enhanced_gui.py --server.port 8504
 ```
 
-Öppna sedan http://localhost:8501 i din webbläsare.
+Öppna sedan http://localhost:8504 i din webbläsare.
 
 ### Sätt upp automatisk daglig generering (Cron)
 
@@ -207,8 +207,15 @@ morgonpodd/
 
 ### Nyhetskällor
 
-Redigera `sources.json` för att lägga till/ta bort nyhetskällor:
+Du kan hantera nyhetskällor på två sätt:
 
+**Via webbgränssnittet (rekommenderas):**
+1. Starta GUI:n: `streamlit run src/enhanced_gui.py --server.port 8504`
+2. Gå till fliken "News Sources"
+3. Lägg till, redigera eller ta bort källor med grafiskt gränssnitt
+4. Testa källor direkt för att verifiera att de fungerar
+
+**Via manuell redigering av sources.json:**
 ```json
 {
   "sources": [
@@ -226,7 +233,14 @@ Redigera `sources.json` för att lägga till/ta bort nyhetskällor:
 
 ### Podcast-värdar
 
-Konfigurera värdpersonligheter i `sources.json`:
+Du kan konfigurera värdpersonligheter på två sätt:
+
+**Via webbgränssnittet:**
+1. Gå till fliken "Podcast Settings" i GUI:n
+2. Redigera värdpersonligheter och röstinställningar
+3. Ändringarna sparas automatiskt
+
+**Via manuell redigering av sources.json:**
 
 ```json
 {
@@ -251,6 +265,13 @@ Konfigurera värdpersonligheter i `sources.json`:
 
 ## 🎵 Lägga till musik
 
+**Via webbgränssnittet (rekommenderas):**
+1. Gå till fliken "Music Library" i GUI:n
+2. Ladda upp MP3-filer direkt via gränssnittet
+3. Organisera musik i kategorier (intro, outro, transition)
+4. Förhandsgranska och hantera musikbiblioteket
+
+**Manuellt:**
 1. Placera MP3-filer i `music/` katalogen
 2. Organisera efter kategori:
    - `music/intro/` - Öppningsmusik

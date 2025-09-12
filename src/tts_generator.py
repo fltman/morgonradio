@@ -106,7 +106,7 @@ class PodcastGenerator:
         
         # Split into chunks if needed (based on 1500 character limit for better dialogue flow)
         max_chars = self.config.get('podcastSettings', {}).get('textToDialogue', {}).get('maxCharsPerChunk', 1500)
-        dialogue_chunks, chunk_music_mapping = self.split_dialogue_by_character_limit(dialogue_inputs, max_chars=max_chars, original_text=boundary_text)
+        dialogue_chunks, music_after_chunks = self.split_dialogue_by_character_limit(dialogue_inputs, max_chars=max_chars, original_text=boundary_text)
         
         logger.info(f"Generating complete dialogue in {len(dialogue_chunks)} chunks (total dialogue length: {sum(len(inp.text) for inp in dialogue_inputs)} chars)")
         
@@ -134,7 +134,7 @@ class PodcastGenerator:
         
         # Store chunk files and mapping for music integration
         self._dialogue_chunk_files = chunk_files
-        self._chunk_music_mapping = chunk_music_mapping
+        self._chunk_music_mapping = music_after_chunks
         self._temp_dir = temp_dir
         
         # For backward compatibility, also create the combined file
@@ -200,73 +200,59 @@ class PodcastGenerator:
         """Split dialogue inputs into chunks under the character limit, respecting music boundaries"""
         import re
         
-        # First, identify music positions by looking at the original segments created by parse_conversation
-        # We need to track where music segments were in the original script to break chunks there
-        music_positions = []
-        if original_text:
-            # Re-parse the original text to find music markers and their positions relative to dialogue
-            segments = self.parse_conversation(original_text)
-            dialogue_count = 0
-            
-            logger.info(f"DEBUG: Found {len(segments)} segments from parse_conversation")
-            for i, segment in enumerate(segments):
-                logger.info(f"DEBUG: Segment {i}: speaker='{segment.get('speaker')}', is_music={segment.get('is_music', False)}, content='{segment.get('content', '')[:50]}...'")
-                
-                if segment.get('is_music', False):
-                    # This is a music marker, so the NEXT dialogue should start a new chunk
-                    music_positions.append(dialogue_count)
-                    logger.info(f"Found music marker at dialogue position {dialogue_count}: {segment['content']}")
-                else:
-                    # This is a dialogue segment, count it
-                    dialogue_count += 1
+        # Parse the original text to find where music markers appear
+        segments = self.parse_conversation(original_text) if original_text else []
         
+        # Build a mapping of dialogue index to whether music follows it
+        music_after_dialogue = set()  # Set of dialogue indices that should have music after them
+        dialogue_count = 0
+        
+        for i, segment in enumerate(segments):
+            if not segment.get('is_music', False):
+                # Check if the NEXT segment is music
+                if i + 1 < len(segments) and segments[i + 1].get('is_music', False):
+                    music_after_dialogue.add(dialogue_count)
+                    logger.info(f"Music marker found after dialogue index {dialogue_count}")
+                dialogue_count += 1
+        
+        logger.info(f"Total dialogue segments: {len(dialogue_inputs)}, Music after indices: {music_after_dialogue}")
+        
+        # Now split dialogue_inputs into chunks, breaking at music boundaries or size limits
         chunks = []
+        music_after_chunks = []  # List of chunk indices that should have music after them
         current_chunk = []
         current_chars = 0
-        dialogue_index = 0
         
-        for dialogue_input in dialogue_inputs:
+        for idx, dialogue_input in enumerate(dialogue_inputs):
             text_length = len(dialogue_input.text)
             
-            # Check if we're at a music boundary - if so, force chunk break
-            should_break_for_music = dialogue_index in music_positions
+            # Add this dialogue to current chunk
+            current_chunk.append(dialogue_input)
+            current_chars += text_length
             
-            # If adding this segment would exceed limit OR we're at a music boundary, start new chunk
-            if ((current_chars + text_length > max_chars) or should_break_for_music) and current_chunk:
+            # Check if we should end this chunk (due to music or size)
+            should_break_for_music = idx in music_after_dialogue
+            should_break_for_size = current_chars >= max_chars and idx < len(dialogue_inputs) - 1
+            
+            if should_break_for_music or should_break_for_size:
+                # Save current chunk
                 chunks.append(current_chunk)
-                current_chunk = [dialogue_input]
-                current_chars = text_length
+                
+                # If breaking for music, record that this chunk should have music after it
                 if should_break_for_music:
-                    logger.info(f"Forced chunk break at dialogue {dialogue_index} due to music boundary")
-            else:
-                current_chunk.append(dialogue_input)
-                current_chars += text_length
-            
-            dialogue_index += 1
+                    music_after_chunks.append(len(chunks) - 1)
+                    logger.info(f"Chunk {len(chunks) - 1} will be followed by music (after dialogue {idx})")
+                
+                # Start new chunk
+                current_chunk = []
+                current_chars = 0
         
-        # Add the last chunk if it has content
+        # Add any remaining dialogue as final chunk
         if current_chunk:
             chunks.append(current_chunk)
         
-        logger.info(f"Split {len(dialogue_inputs)} segments into {len(chunks)} chunks (max {max_chars} chars each, {len(music_positions)} music boundaries)")
-        
-        # Create mapping from music positions to chunk indices
-        chunk_music_mapping = {}
-        current_dialogue_pos = 0
-        
-        for chunk_idx, chunk in enumerate(chunks):
-            chunk_start = current_dialogue_pos
-            chunk_end = current_dialogue_pos + len(chunk) - 1
-            
-            # Check if any music positions fall within this chunk's dialogue range
-            for music_pos in music_positions:
-                if chunk_start <= music_pos <= chunk_end:
-                    chunk_music_mapping[chunk_idx] = chunk_music_mapping.get(chunk_idx, []) + [music_pos]
-            
-            current_dialogue_pos += len(chunk)
-        
-        logger.info(f"Chunk to music mapping: {chunk_music_mapping}")
-        return chunks, chunk_music_mapping
+        logger.info(f"Created {len(chunks)} chunks, music after chunks: {music_after_chunks}")
+        return chunks, music_after_chunks
     
     def prepare_dialogue_with_emotions(self, text: str, hosts: list) -> list:
         """Convert conversation text to dialogue format with emotions"""
@@ -605,20 +591,17 @@ class PodcastGenerator:
             dialogue_chunks = self._dialogue_chunk_files
             logger.info(f"Using {len(dialogue_chunks)} dialogue chunks for proper music integration")
             
-            # Strategy: Build the sequence by walking through the segments in script order
-            # and mapping to the correct chunk/music files
-            segments = self.parse_conversation(original_text)
+            # Build the final sequence following script order
+            # The chunks were already split at music boundaries by split_dialogue_by_character_limit
+            # music_after_chunks tells us which chunks should have music after them
+            
             sequence = []
-            
-            # Simple approach: Create linear array of chunks and music
-            # Based on chunk count and music positions
-            
-            logger.info(f"Found {len(dialogue_chunks)} dialogue chunks and {len(music_cues)} music tracks")
-            
-            # Simple but correct approach: process ALL chunks first, then add music strategically
             music_index = 0
+            music_after_chunks = getattr(self, '_chunk_music_mapping', [])
             
-            # Process ALL chunks - this guarantees ALL chunks are included
+            logger.info(f"Building sequence: {len(dialogue_chunks)} chunks, {len(music_cues)} music tracks")
+            logger.info(f"Music should appear after chunks: {music_after_chunks}")
+            
             for i in range(len(dialogue_chunks)):
                 # Add dialogue chunk
                 sequence.append({
@@ -628,18 +611,20 @@ class PodcastGenerator:
                 })
                 logger.info(f"Added dialogue chunk {i + 1} to sequence")
                 
-                # Add music after certain chunks (simplified logic for now)
-                # For 6 chunks and 3 music tracks, place music after chunks 1, 2, and 4
-                if music_index < len(music_cues) and i in [0, 1, 3]:  # After chunks 1, 2, and 4
-                    cue = music_cues[music_index]
-                    if os.path.exists(cue['track']['path']):
-                        sequence.append({
-                            'type': 'music',
-                            'file': cue['track']['path'],
-                            'info': f"{cue['artist']} - {cue['title']}"
-                        })
-                        logger.info(f"Added music to sequence: {cue['artist']} - {cue['title']}")
-                    music_index += 1
+                # Check if music should follow this chunk
+                if i in music_after_chunks:
+                    if music_index < len(music_cues):
+                        cue = music_cues[music_index]
+                        if os.path.exists(cue['track']['path']):
+                            sequence.append({
+                                'type': 'music',
+                                'file': cue['track']['path'],
+                                'info': f"{cue['artist']} - {cue['title']}"
+                            })
+                            logger.info(f"Added music after chunk {i + 1}: {cue['artist']} - {cue['title']}")
+                        music_index += 1
+                    else:
+                        logger.warning(f"Expected music after chunk {i + 1} but no more music cues available")
             
             if not sequence:
                 logger.warning("No valid sequence generated, using original speech file")

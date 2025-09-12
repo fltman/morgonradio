@@ -108,6 +108,7 @@ def main():
             "Podcast Settings", 
             "Music Library",
             "News Sources",
+            "Prompts",
             "Generate Episode",
             "API Keys"
         ]
@@ -143,6 +144,8 @@ def main():
         show_music_library_comprehensive()
     elif selected_page == "News Sources":
         show_news_sources(config)
+    elif selected_page == "Prompts":
+        show_prompts(config)
     elif selected_page == "Generate Episode":
         show_episode_generation(config)
     elif selected_page == "API Keys":
@@ -1311,6 +1314,249 @@ def test_individual_source(source):
         st.error(f"❌ Failed to test {source['name']}: {str(e)}")
         st.subheader("🚨 Error Details")
         st.code(str(e), language="python")
+
+def show_prompts(config):
+    st.header("✏️ Prompt Templates")
+    st.write("Edit all AI prompts used in podcast generation. Changes are saved automatically.")
+    
+    # Get current prompt templates
+    prompt_templates = config.get('podcastSettings', {}).get('promptTemplates', {})
+    intro_settings = config.get('podcastSettings', {}).get('intro', {})
+    
+    st.markdown("---")
+    
+    # Main podcast generation prompt
+    st.subheader("🎙️ Main Podcast Generation Prompt")
+    st.write("This prompt controls how the AI creates dialogue between hosts.")
+    
+    default_main_prompt = """Du skapar ett naturligt samtal mellan {host1_name} och {host2_name}, två professionella poddvärdar.
+
+{host1_name}: {host1_personality}
+{host2_name}: {host2_personality}
+
+Skapa ett engagerande samtal där värdarna diskuterar dagens nyheter på ett naturligt sätt."""
+    
+    current_main_prompt = prompt_templates.get('main_prompt', default_main_prompt)
+    
+    main_prompt = st.text_area(
+        "Main Prompt Template",
+        value=current_main_prompt,
+        height=200,
+        help="Available placeholders: {host1_name}, {host2_name}, {host1_personality}, {host2_personality}",
+        key="main_prompt"
+    )
+    
+    st.markdown("---")
+    
+    # Intro prompt
+    st.subheader("🎬 Intro Prompt")
+    st.write("This prompt is used to generate the podcast introduction.")
+    
+    default_intro_prompt = "Välkommen till {podcast_title}! Idag är det {date}. Här kommer din dagliga sammanfattning av nyheter, teknik och väder."
+    
+    current_intro_prompt = intro_settings.get('prompt', default_intro_prompt)
+    
+    intro_prompt = st.text_area(
+        "Intro Template",
+        value=current_intro_prompt,
+        height=100,
+        help="Available placeholders: {podcast_title}, {date}",
+        key="intro_prompt"
+    )
+    
+    st.markdown("---")
+    
+    # Conversation style setting
+    st.subheader("🗣️ Conversation Style")
+    
+    current_style = prompt_templates.get('conversation_style', 'natural_dialogue')
+    
+    conversation_style = st.selectbox(
+        "Conversation Style",
+        options=['natural_dialogue', 'formal', 'casual', 'energetic', 'calm'],
+        index=['natural_dialogue', 'formal', 'casual', 'energetic', 'calm'].index(current_style) if current_style in ['natural_dialogue', 'formal', 'casual', 'energetic', 'calm'] else 0,
+        help="Controls the overall tone and style of the conversation",
+        key="conversation_style"
+    )
+    
+    st.markdown("---")
+    
+    # Music instructions prompt
+    st.subheader("🎵 Music Usage Instructions")
+    st.write("Instructions that tell the AI how to integrate music into the podcast script.")
+    
+    # Default music instructions from music_library.py
+    default_music_instructions = """Instruktioner för musikanvändning:
+- OBLIGATORISK MUSIKINTEGRATION - Du MÅSTE inkludera musik enligt följande:
+  - KRÄVS: Öppna med intro-musik från kategori "intro": [MUSIK: artist - titel]
+  - KRÄVS: Minst 2 övergångsmusik mellan ämnen från kategori "transition": [MUSIK: artist - titel]
+  - KRÄVS: Passande bakgrundsmusik för olika ämnesområden (news, tech, weather)
+  - KRÄVS: Avsluta med outro-musik från kategori "outro": [MUSIK: artist - titel]
+  - VIKTIGT: Använd FULLSTÄNDIGA låtar (ingen tidsbegränsning)
+  - VIKTIGT: Varje låt får bara användas EN gång per avsnitt (inga dubbletter)
+- Använd ENDAST artister och titlar som finns i den tillgängliga musiklistan
+- VIKTIGT: Värdarna ska ALDRIG kommentera eller presentera musiken
+- Placera [MUSIK: artist - titel] mellan samtalsavsnitt eller när det passar naturligt
+- Markera musikinsättningar som: [MUSIK: artist - titel]
+- Välj musik som passar ämnet och stämningen
+- VIKTIGT: Om du inte inkluderar musik kommer systemet att MISSLYCKAS. Musik är OBLIGATORISKT."""
+    
+    current_music_instructions = config.get('podcastSettings', {}).get('music_instructions', default_music_instructions)
+    
+    music_instructions = st.text_area(
+        "Music Integration Instructions",
+        value=current_music_instructions,
+        height=250,
+        help="These instructions tell the AI exactly how to use music in the podcast. Format: [MUSIK: artist - titel]",
+        key="music_instructions"
+    )
+    
+    st.markdown("---")
+    
+    # Emotional design prompt
+    st.subheader("🎭 Emotional Design & Tonality Instructions")
+    st.write("Instructions for how to use emotional tags and tonality in the dialogue.")
+    
+    default_emotional_prompt = """EMOTIONAL DESIGN FÖR NATURLIGT SAMTAL:
+Skapa ett samtal som utnyttjar ElevenLabs nya text-to-dialogue funktionalitet med följande emotionella variation:
+- EXCITED: För positiva nyheter, framgångshistorier, spännande upptäckter
+- LAUGHING: För roliga nyheter, humoristiska kommentarer, lättsammare inslag
+- CURIOUS: För intressanta tekniska nyheter, forskningsresultat, innovations
+- CONCERNED: För allvarliga nyheter, problem, varningar, kriser
+- SAD: För tragiska nyheter, sorgsna händelser
+- NEUTRAL: För analyser, faktabaserad information, objektiva rapporter
+- FRIENDLY: För hälsningar, övergångar, personliga kommentarer
+- SURPRISED: För överraskande nyheter, häpnadsväckande upptäckter
+- CONVERSATIONAL: Som bas för neutralt innehåll och naturliga övergångar
+
+OBS: Du kan markera emotionella partier med hakparenteser [excited], [laughing], etc. men använd sparsamt - endast för tydliga emotionella höjdpunkter.
+
+Instruktioner för optimerad text-to-dialogue:
+1. Skapa ett naturligt samtal mellan värdarna
+2. Variera emotionell ton baserat på innehåll - använd ord som indikerar känsla:
+   - "Det här är verkligen spännande..." (CURIOUS/EXCITED)
+   - "Det är oroande att höra..." (CONCERNED)
+   - "Enligt nya forskningsresultat..." (PROFESSIONAL)
+   - "Hej och välkommen..." (FRIENDLY)
+   - "Vädret idag visar..." (CALM)
+3. Låt värdarna reagera emotionellt passande på varandras kommentarer
+4. Inkludera naturliga övergångar med emotionell förändring"""
+    
+    current_emotional_prompt = config.get('podcastSettings', {}).get('emotional_design', default_emotional_prompt)
+    
+    emotional_prompt = st.text_area(
+        "Emotional Design Instructions",
+        value=current_emotional_prompt,
+        height=300,
+        help="These instructions tell the AI how to use emotional tags like [excited], [concerned], etc.",
+        key="emotional_design"
+    )
+    
+    st.markdown("---")
+    
+    # System prompt for OpenAI API
+    st.subheader("🤖 System Prompt")
+    st.write("The system prompt sent to the OpenAI API to set the AI's role and behavior.")
+    
+    # This is currently hardcoded in summarizer.py, but we can add it to config
+    default_system_prompt = "Du är en professionell AI som hjälper till att skapa naturliga samtal mellan poddvärdar på svenska."
+    
+    current_system_prompt = config.get('podcastSettings', {}).get('system_prompt', default_system_prompt)
+    
+    system_prompt = st.text_area(
+        "System Prompt",
+        value=current_system_prompt,
+        height=100,
+        help="This sets the AI's role and behavior for content generation",
+        key="system_prompt"
+    )
+    
+    st.markdown("---")
+    
+    # Preview section
+    with st.expander("🔍 Preview Formatted Prompts"):
+        st.subheader("Main Prompt Preview")
+        
+        # Get host info for preview
+        hosts = config.get('podcastSettings', {}).get('hosts', [])
+        host1 = hosts[0] if len(hosts) > 0 else {'name': 'Anna', 'personality': 'Energisk morgonvärd'}
+        host2 = hosts[1] if len(hosts) > 1 else {'name': 'Erik', 'personality': 'Analytisk journalist'}
+        
+        try:
+            preview_main = main_prompt.format(
+                host1_name=host1['name'],
+                host2_name=host2['name'],
+                host1_personality=host1.get('personality', 'Energisk morgonvärd'),
+                host2_personality=host2.get('personality', 'Analytisk journalist')
+            )
+            st.code(preview_main, language="text")
+        except Exception as e:
+            st.error(f"Preview error: {e}")
+        
+        st.subheader("Intro Prompt Preview")
+        
+        try:
+            podcast_title = config.get('podcastSettings', {}).get('title', 'Morgonpodd')
+            preview_intro = intro_prompt.format(
+                podcast_title=podcast_title,
+                date="måndag den 10 september"
+            )
+            st.code(preview_intro, language="text")
+        except Exception as e:
+            st.error(f"Preview error: {e}")
+    
+    # Save button
+    col1, col2, col3 = st.columns([1, 1, 1])
+    
+    with col2:
+        if st.button("💾 Save All Prompts", type="primary", use_container_width=True):
+            # Update configuration
+            if 'podcastSettings' not in config:
+                config['podcastSettings'] = {}
+            
+            if 'promptTemplates' not in config['podcastSettings']:
+                config['podcastSettings']['promptTemplates'] = {}
+                
+            if 'intro' not in config['podcastSettings']:
+                config['podcastSettings']['intro'] = {}
+            
+            # Save all prompt updates
+            config['podcastSettings']['promptTemplates']['main_prompt'] = main_prompt
+            config['podcastSettings']['promptTemplates']['conversation_style'] = conversation_style
+            config['podcastSettings']['intro']['prompt'] = intro_prompt
+            config['podcastSettings']['system_prompt'] = system_prompt
+            config['podcastSettings']['music_instructions'] = music_instructions
+            config['podcastSettings']['emotional_design'] = emotional_prompt
+            
+            try:
+                save_config(config)
+                st.success("✅ All prompts saved successfully!")
+                st.balloons()
+                
+                # Show what was saved
+                with st.expander("📋 Saved Configuration"):
+                    st.json({
+                        "main_prompt": main_prompt,
+                        "intro_prompt": intro_prompt,
+                        "conversation_style": conversation_style,
+                        "music_instructions": music_instructions,
+                        "emotional_design": emotional_prompt,
+                        "system_prompt": system_prompt
+                    })
+                    
+            except Exception as e:
+                st.error(f"❌ Failed to save configuration: {e}")
+    
+    # Reset to defaults button
+    with col3:
+        if st.button("🔄 Reset to Defaults", help="Reset all prompts to default values"):
+            st.session_state.main_prompt = default_main_prompt
+            st.session_state.intro_prompt = default_intro_prompt
+            st.session_state.conversation_style = 'natural_dialogue'
+            st.session_state.music_instructions = default_music_instructions
+            st.session_state.emotional_design = default_emotional_prompt
+            st.session_state.system_prompt = default_system_prompt
+            st.rerun()
 
 if __name__ == "__main__":
     main()

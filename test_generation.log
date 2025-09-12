@@ -1,0 +1,363 @@
+INFO:__main__:=== Starting podcast generation ===
+INFO:__main__:Step 1: Scraping content...
+INFO:scraper:🚀 Starting scraping from 7 sources...
+INFO:scraper:🔍 Scraping SVT Nyheter RSS (https://www.svt.se/nyheter/rss.xml)...
+INFO:scraper:📡 RSS feed detected for SVT Nyheter RSS
+INFO:scraper:🌐 Fetching https://www.svt.se/nyheter/rss.xml with User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+INFO:scraper:🔍 Scraping DN RSS (https://www.dn.se/rss/)...
+INFO:scraper:📡 RSS feed detected for DN RSS
+INFO:scraper:🌐 Fetching https://www.dn.se/rss/ with User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+INFO:scraper:🔍 Scraping TechCrunch RSS (https://techcrunch.com/feed/)...
+INFO:scraper:📡 RSS feed detected for TechCrunch RSS
+INFO:scraper:🌐 Fetching https://techcrunch.com/feed/ with User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+INFO:scraper:🔍 Scraping Wired RSS (https://www.wired.com/feed/rss)...
+INFO:scraper:📡 RSS feed detected for Wired RSS
+INFO:scraper:🌐 Fetching https://www.wired.com/feed/rss with User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+INFO:scraper:🔍 Scraping The Verge RSS (https://www.theverge.com/rss/index.xml)...
+INFO:scraper:📡 RSS feed detected for The Verge RSS
+INFO:scraper:🌐 Fetching https://www.theverge.com/rss/index.xml with User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+INFO:scraper:🔍 Scraping Hacker News (HTML fallback) (https://news.ycombinator.com/)...
+INFO:scraper:🌐 Fetching https://news.ycombinator.com/ with User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWeb...
+INFO:scraper:🔍 Scraping väder (https://wttr.in/kalmar?format=3)...
+INFO:scraper:🌐 Fetching https://wttr.in/kalmar?format=3 with User-Agent: curl/7.68.0...
+INFO:scraper:✅ Successfully fetched 18407 characters from https://techcrunch.com/feed/
+INFO:scraper:📝 Content preview: <?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/eleme...
+INFO:scraper:✅ Successfully fetched RSS feed (18407 characters)
+INFO:scraper:📡 RSS feed parsed: 20 entries found
+INFO:scraper:✅ Successfully extracted 3 RSS items from TechCrunch RSS
+INFO:scraper:✅ Successfully fetched 47389 characters from https://www.wired.com/feed/rss
+INFO:scraper:📝 Content preview: <?xml version="1.0" encoding="utf-8"?><rss xmlns:atom="http://www.w3.org/2005/Atom" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:media="http://search.yahoo.com/mrss/" version="2.0"><channel><titl...
+INFO:scraper:✅ Successfully fetched RSS feed (47389 characters)
+INFO:scraper:📡 RSS feed parsed: 50 entries found
+INFO:scraper:✅ Successfully extracted 2 RSS items from Wired RSS
+INFO:scraper:✅ Successfully fetched 117899 characters from https://www.dn.se/rss/
+INFO:scraper:📝 Content preview: <?xml version="1.0" encoding="UTF-8" ?>
+<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/" xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <channel>
+    <title>DN.se - Dagens Nyheter</title...
+INFO:scraper:✅ Successfully fetched RSS feed (117899 characters)
+INFO:scraper:📡 RSS feed parsed: 113 entries found
+INFO:scraper:✅ Successfully extracted 3 RSS items from DN RSS
+INFO:scraper:✅ Successfully fetched 50106 characters from https://www.theverge.com/rss/index.xml
+INFO:scraper:📝 Content preview: <?xml version="1.0" encoding="UTF-8"?><feed
+	xmlns="http://www.w3.org/2005/Atom"
+	xmlns:thr="http://purl.org/syndication/thread/1.0"
+	xml:lang="en-US"
+	>
+	<title type="text">The Verge</title>
+	<subtit...
+INFO:scraper:✅ Successfully fetched RSS feed (50106 characters)
+INFO:scraper:📡 RSS feed parsed: 10 entries found
+INFO:scraper:✅ Successfully extracted 2 RSS items from The Verge RSS
+INFO:scraper:✅ Successfully fetched 11836 characters from https://www.svt.se/nyheter/rss.xml
+INFO:scraper:📝 Content preview: <?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0">
+ <channel>
+  <title>SVT Nyheter</title>
+  <link>https://www.svt.se/</link>
+  <description>De senaste artiklarna på SVT Nyheter</description>
+...
+INFO:scraper:✅ Successfully fetched RSS feed (11836 characters)
+INFO:scraper:📡 RSS feed parsed: 20 entries found
+INFO:scraper:✅ Successfully extracted 5 RSS items from SVT Nyheter RSS
+INFO:scraper:✅ Successfully fetched 34472 characters from https://news.ycombinator.com/
+INFO:scraper:📝 Content preview: <html lang="en" op="news"><head><meta name="referrer" content="origin"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="stylesheet" type="text/css" href="news.css?dundz...
+INFO:scraper:✅ Successfully fetched HTML (34472 characters from Hacker News (HTML fallback))
+INFO:scraper:🔎 Looking for HTML elements with selector: '.titleline > a' (max 3 items)
+INFO:scraper:📰 Found 30 total HTML elements matching selector
+INFO:scraper:✅ Successfully extracted 2 HTML items from Hacker News (HTML fallback)
+INFO:scraper:✅ Successfully fetched 18 characters from https://wttr.in/kalmar?format=3
+INFO:scraper:📝 Content preview: kalmar: ⛅️  +18°C
+...
+INFO:scraper:✅ Successfully fetched HTML (18 characters from väder)
+INFO:scraper:🌤️ Extracting weather information...
+INFO:scraper:🌤️ Raw weather text (17 chars): kalmar: ⛅️  +18°C...
+INFO:scraper:✅ Detected wttr.in plain text format
+INFO:scraper:✅ Found weather info: kalmar: ⛅️  +18°C
+INFO:scraper:📊 Scraping Summary:
+INFO:scraper:  • Total sources: 7
+INFO:scraper:  • Successful sources: 7
+INFO:scraper:  • Total items extracted: 18
+INFO:scraper:  ✅ SVT Nyheter RSS: 5 items
+INFO:scraper:  ✅ DN RSS: 3 items
+INFO:scraper:  ✅ TechCrunch RSS: 3 items
+INFO:scraper:  ✅ Wired RSS: 2 items
+INFO:scraper:  ✅ The Verge RSS: 2 items
+INFO:scraper:  ✅ Hacker News (HTML fallback): 2 items
+INFO:scraper:  ✅ väder: 1 items
+INFO:__main__:Step 2: Generating podcast script...
+INFO:httpx:HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:summarizer:Podcast script generated successfully
+INFO:summarizer:Script saved to scripts/podcast_script_20250910_131031.txt
+INFO:__main__:Step 3a: Generating intro...
+INFO:intro_generator:Generating intro: Välkommen till Min Morgonpodd! Idag är det onsdag den 10 september 2025. Här kommer din dagliga sammanfattning av nyheter, teknik och väder.
+INFO:intro_generator:Intro audio saved: audio/intro_20250910_131034.mp3
+INFO:intro_generator:Voice duration: 12.07s
+INFO:intro_generator:Creating intro: voice plays for 12.07s, music continues for 1.0s, then fades at 13.07s over 2.00s
+INFO:intro_generator:Combined intro with fade transitions created: audio/intro_complete_20250910_131034.mp3
+INFO:__main__:Step 3b: Generating main content audio with ElevenLabs...
+INFO:music_library:Found music cue: unknown - I am light
+INFO:music_library:Found music cue: unknown - I am light without a source
+INFO:music_library:Found music cue: deepseek - hello human
+INFO:tts_generator:Found 3 music cues in script
+INFO:tts_generator:Using ElevenLabs text-to-dialogue API for natural conversation...
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Hej och välkomna till eftermiddagspodden — det är onsdag den 10 september 2025, klockan 13:09, och hösten börjar verkligen göra sig påmind där ute. Jag är Anna, energisk som alltid, och med mig som vanligt — Erik!'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [friendly] Hej! Erik här. Skönt med en mitt-i-veckan-paus för att reda ut nyhetsflödet. Vi har en del allvarliga grejer idag men också tekniknyheter som får en att tänka framåt. Hur känns det, Anna?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Pepp! Vi tar det i tur och ordning. Först på listan: kraftiga skyfall i Västernorrland — och mer regn väntar, enligt SVT och Dagens Nyheter. De säger att man "jobbar mot klockan". Vad vet vi just nu?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Situationen ser tuff ut. Lokala räddningstjänster rapporterar översvämningar och svårigheter att nå vissa områden. Det som gör det akut är att infrastrukturen tar stryk — vi ser att bland annat järnvägar blivit avskurna, vilket slår hårt mot transportföretag i Umeå. För transportbranschen handlar det inte bara om förseningar utan om stora kostnader när gods fastnar.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [concerned] Ja, det är alltid de lokala företagen och hushållen som får ta smällen först. Och med mer regn på väg, känns det som att man måste vara beredd på att situationen kan förvärras under dagen och kvällen.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Precis. Myndigheter uppmanar till försiktighet och att följa lokala varningar. En intressant aspekt är hur klimatvariationerna slår olika mot järnväg kontra vägtrafik — järnväg är känsligare för spårskador och lerskred, medan vägar ofta kan köras runt men inte alltid. Det ökar komplexiteten i logistikkedjan när en delknut punktligt bryts.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Innan vi går vidare — en snabb väderhälsning för resten av landet: Kalmar visar ⛅️ +18°C just nu, så det är ganska mildt där i eftermiddag.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [curious] Tack! Och apropå infrastruktur — Industristaden, kommunen diskuterar en stor arena för evenemang. Det kan bli en ekonomisk motor, men också ställa krav på transporter och parkeringslösningar. Vad är dina första tankar?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Åh, en arena! Det låter ju fantastiskt för lokal kultur- och idrottsliv. Större konserter, mässor — det kan verkligen skapa liv i höstmörkret. Samtidigt hoppas jag att planerna tar hänsyn till miljö, kollektivtrafik och områdets invånare.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Ekonomiskt kan en arena vara en investering, men det finns risker. Driftskostnader, finansieringsmodeller, och om projektet byggs utan starkt stöd från lokala aktörer kan det bli en belastning. Vi bör också tänka på hur en arena integreras med befintlig infrastruktur — särskilt med tanke på de störningar vi ser i Väster- och Norrland.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Vi hoppar vidare till politik — partiledarna möttes i riksdagsdebatt idag. Stämningen var ordentlig, kan man säga. Några highlights?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Debatten handlade mycket om ekonomi och trygghet. Partierna försökte profilera sig inför kommande utmaningar; skatter, arbetsmarknad och hur man ska hantera klimatrelaterade kostnader dök upp. Det är en klassisk "visa ryggrad"-debatt — mycket retorik, ibland tunt med konkreta åtgärder.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [laughing] Ja, politiska debatter är ofta lika delar show och substans. Men för lyssnarna som vill gräva djupare — håll koll på våra länkar i shownoten.'
+INFO:tts_generator:DEBUG PARSE: Processing line: '[Musikinsättning följer — lite pepp innan vi går in på allvarligare ämnen]'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: Nu kommer låten "I am light" av unknown, som piggar upp efter den politiska debatten.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Vi måste också ta upp två rätt allvarliga händelser: först, en kvinna i Norrköping åtalas för att ha täckt över poliskameror — rubricerat som sabotage. Det väcker frågor om ordningslagstiftning och offentlig säkerhet.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [concerned] Det känns väldigt oroväckande. Kameror är en del av brottsbekämpning och rättsprocesser. Att aktivt försöka dölja bevis är något polisen tar på stort allvar.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Rättsprocessen får utvisa mer, men det är ett bra exempel på hur teknik och rättssystem möts — och hur gråzoner för handlingar blir juridiska frågor.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [sad] Och en annan tragisk nyhet från DN — minst 15 döda i ett nytt utbrott av ebola i Kongo. Det gör ont att höra.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Absolut. Ebola-utbrott slår hårt, både humanitärt och i hur det påverkar lokalsamhällen och sjukvårdssystem som redan är ansträngda. Internationellt bistånd och snabb insats är avgörande för att stoppa smittspridning.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Ett konstigt motstycke i dagens kulturbevakning — Moderna museet, där våld gestaltas och ifrågasätts. Diskussion om konst som väcker upprörda känslor.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Det är en relevant offentlig diskussion — fri konst kontra ansvar och kontext. Bra att det debatteras; sådana samtal formar framtida riktlinjer för museer.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [curious] Okej, dags för teknikdelen — och då lämnar vi in lite djupare analys till dig, Erik. Vad har hänt i teknikvärlden idag?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [curious] Flera intressanta grejer. Först från TechCrunch: tidigare säkerhetschefer från Google har samlat in 13 miljoner dollar för att bekämpa e-posthot innan de når användare. Det låter lovande — proaktiv e-postsäkerhet med bättre filtrering kan minska phishing och skadlig kod.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [surprised] Det låter smart — mindre spam, mindre bedrägerier.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Ja. På Spotify-området: Spotify lanserar äntligen stöd för lossless streaming. Det är stort för ljudfantaster — CD-kvalitet eller bättre innebär större bandbredd och lagringskrav för användare, men också en kvalitetsförbättring för musiklyssnare.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Som musikälskare blir jag superglad! Det är som att få en extra dimension i favoritlåtarna.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [curious] En annan grej: Robinhood inför copy trading, vilket gör att användare kan kopiera andra investerares portföljer. Det är intressant men förknippat med regulatoriska risker — precis som företaget varnade andra om tidigare.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [neutral] På tal om risker — Wired rapporterar att amerikanska investeringar i spionprogramvara skjuter i höjden. Det är både imponerande och skrämmande.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Ja — ökade investeringar i spyware väcker frågor om övervakning, gränser och hur teknik används av stater. Samtidigt har eSIMs blivit allt vanligare — Wired har också en bra genomgång om hur eSIM fungerar och hur man byter från fysisk SIM. För lyssnare som reser mycket eller byter operatörer kan det vara användbar läsning.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [laughing] Och The Verge tar upp att Zillows nya AI-homestyling är... imponerande på pappret men ganska intetsägande i praktiken.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [surprised] Ja, "impressively unimpressive" sammanfattar ibland AI-lösningar — mycket hype, varierande nytta i verkliga användningsfall. Nikon lanserar också sin första RED-co-brand, Nikon ZR — intressant för fotoentusiaster.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [laughing] Slutligen, lite underhållande hacker-nyheter: någon har ersatt Animal Crossing-dialog med en live LLM på GameCube. Det är både kreativt och lite galet.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Det visar både kreativ potential och de etiska gränserna för modding. Spännande läsning för tekniknördar.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Innan vi rundar av teknikdelen — nu kommer en lugnare, mystisk låt som passar när vi går från nyheter till analys. Nu spelar vi "I am light without a source" av unknown.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [friendly] Bra avkoppling. Vi närmar oss slutet — vill du ta några avslutande reflektioner, Anna?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Ja. Sammanfattningsvis: håll koll på vädervarningar i Norrland, stöd lokala aktörer som drabbas av översvämningar, följ riksdagsdebatten om hur vi ska hantera framtida utmaningar, och gläds åt tekniska framsteg som lossless på Spotify men var vaksam på risker med saker som spyware och copy trading.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Jag skulle lägga till: för teknikintresserade — läs på om eSIM och säkerhetslösningar för e-post. Och för lokal planerare — förespråka hållbar infrastruktur när man bygger stora projekt som arenor. Slutligen, tänk på den mänskliga sidan i humanitära kriser som Ebola; de behöver snabba insatser.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Då avslutar vi med kvällens lugnare ton. Vi spelar "hello human" av deepseek — perfekt för en höstig eftermiddag. Nu kommer låten.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [friendly] Tack för att ni lyssnade i eftermiddag — vi är tillbaka imorgon med nya nyheter och analyser. Ta hand om er där ute i höstvädret!'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Hejdå allihopa — vi hörs snart igen!'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Hej och välkomna till eftermiddagspodden — det är onsdag den 10 september 2025, klockan 13:09, och hösten börjar verkligen göra sig påmind där ute. Jag är Anna, energisk som alltid, och med mig som vanligt — Erik!'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [friendly] Hej! Erik här. Skönt med en mitt-i-veckan-paus för att reda ut nyhetsflödet. Vi har en del allvarliga grejer idag men också tekniknyheter som får en att tänka framåt. Hur känns det, Anna?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Pepp! Vi tar det i tur och ordning. Först på listan: kraftiga skyfall i Västernorrland — och mer regn väntar, enligt SVT och Dagens Nyheter. De säger att man "jobbar mot klockan". Vad vet vi just nu?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Situationen ser tuff ut. Lokala räddningstjänster rapporterar översvämningar och svårigheter att nå vissa områden. Det som gör det akut är att infrastrukturen tar stryk — vi ser att bland annat järnvägar blivit avskurna, vilket slår hårt mot transportföretag i Umeå. För transportbranschen handlar det inte bara om förseningar utan om stora kostnader när gods fastnar.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [concerned] Ja, det är alltid de lokala företagen och hushållen som får ta smällen först. Och med mer regn på väg, känns det som att man måste vara beredd på att situationen kan förvärras under dagen och kvällen.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Precis. Myndigheter uppmanar till försiktighet och att följa lokala varningar. En intressant aspekt är hur klimatvariationerna slår olika mot järnväg kontra vägtrafik — järnväg är känsligare för spårskador och lerskred, medan vägar ofta kan köras runt men inte alltid. Det ökar komplexiteten i logistikkedjan när en delknut punktligt bryts.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Innan vi går vidare — en snabb väderhälsning för resten av landet: Kalmar visar ⛅️ +18°C just nu, så det är ganska mildt där i eftermiddag.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [curious] Tack! Och apropå infrastruktur — Industristaden, kommunen diskuterar en stor arena för evenemang. Det kan bli en ekonomisk motor, men också ställa krav på transporter och parkeringslösningar. Vad är dina första tankar?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Åh, en arena! Det låter ju fantastiskt för lokal kultur- och idrottsliv. Större konserter, mässor — det kan verkligen skapa liv i höstmörkret. Samtidigt hoppas jag att planerna tar hänsyn till miljö, kollektivtrafik och områdets invånare.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Ekonomiskt kan en arena vara en investering, men det finns risker. Driftskostnader, finansieringsmodeller, och om projektet byggs utan starkt stöd från lokala aktörer kan det bli en belastning. Vi bör också tänka på hur en arena integreras med befintlig infrastruktur — särskilt med tanke på de störningar vi ser i Väster- och Norrland.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Vi hoppar vidare till politik — partiledarna möttes i riksdagsdebatt idag. Stämningen var ordentlig, kan man säga. Några highlights?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Debatten handlade mycket om ekonomi och trygghet. Partierna försökte profilera sig inför kommande utmaningar; skatter, arbetsmarknad och hur man ska hantera klimatrelaterade kostnader dök upp. Det är en klassisk "visa ryggrad"-debatt — mycket retorik, ibland tunt med konkreta åtgärder.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [laughing] Ja, politiska debatter är ofta lika delar show och substans. Men för lyssnarna som vill gräva djupare — håll koll på våra länkar i shownoten.'
+INFO:tts_generator:DEBUG PARSE: Processing line: '[Musikinsättning följer — lite pepp innan vi går in på allvarligare ämnen]'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: Nu kommer låten "I am light" av unknown, som piggar upp efter den politiska debatten.'
+INFO:tts_generator:DEBUG PARSE: Processing line: '[MUSIK: unknown - I am light]'
+INFO:tts_generator:DEBUG PARSE: FOUND MUSIC MARKER: '[MUSIK: unknown - I am light]'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Vi måste också ta upp två rätt allvarliga händelser: först, en kvinna i Norrköping åtalas för att ha täckt över poliskameror — rubricerat som sabotage. Det väcker frågor om ordningslagstiftning och offentlig säkerhet.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [concerned] Det känns väldigt oroväckande. Kameror är en del av brottsbekämpning och rättsprocesser. Att aktivt försöka dölja bevis är något polisen tar på stort allvar.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Rättsprocessen får utvisa mer, men det är ett bra exempel på hur teknik och rättssystem möts — och hur gråzoner för handlingar blir juridiska frågor.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [sad] Och en annan tragisk nyhet från DN — minst 15 döda i ett nytt utbrott av ebola i Kongo. Det gör ont att höra.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Absolut. Ebola-utbrott slår hårt, både humanitärt och i hur det påverkar lokalsamhällen och sjukvårdssystem som redan är ansträngda. Internationellt bistånd och snabb insats är avgörande för att stoppa smittspridning.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Ett konstigt motstycke i dagens kulturbevakning — Moderna museet, där våld gestaltas och ifrågasätts. Diskussion om konst som väcker upprörda känslor.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Det är en relevant offentlig diskussion — fri konst kontra ansvar och kontext. Bra att det debatteras; sådana samtal formar framtida riktlinjer för museer.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [curious] Okej, dags för teknikdelen — och då lämnar vi in lite djupare analys till dig, Erik. Vad har hänt i teknikvärlden idag?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [curious] Flera intressanta grejer. Först från TechCrunch: tidigare säkerhetschefer från Google har samlat in 13 miljoner dollar för att bekämpa e-posthot innan de når användare. Det låter lovande — proaktiv e-postsäkerhet med bättre filtrering kan minska phishing och skadlig kod.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [surprised] Det låter smart — mindre spam, mindre bedrägerier.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Ja. På Spotify-området: Spotify lanserar äntligen stöd för lossless streaming. Det är stort för ljudfantaster — CD-kvalitet eller bättre innebär större bandbredd och lagringskrav för användare, men också en kvalitetsförbättring för musiklyssnare.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Som musikälskare blir jag superglad! Det är som att få en extra dimension i favoritlåtarna.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [curious] En annan grej: Robinhood inför copy trading, vilket gör att användare kan kopiera andra investerares portföljer. Det är intressant men förknippat med regulatoriska risker — precis som företaget varnade andra om tidigare.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [neutral] På tal om risker — Wired rapporterar att amerikanska investeringar i spionprogramvara skjuter i höjden. Det är både imponerande och skrämmande.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Ja — ökade investeringar i spyware väcker frågor om övervakning, gränser och hur teknik används av stater. Samtidigt har eSIMs blivit allt vanligare — Wired har också en bra genomgång om hur eSIM fungerar och hur man byter från fysisk SIM. För lyssnare som reser mycket eller byter operatörer kan det vara användbar läsning.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [laughing] Och The Verge tar upp att Zillows nya AI-homestyling är... imponerande på pappret men ganska intetsägande i praktiken.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [surprised] Ja, "impressively unimpressive" sammanfattar ibland AI-lösningar — mycket hype, varierande nytta i verkliga användningsfall. Nikon lanserar också sin första RED-co-brand, Nikon ZR — intressant för fotoentusiaster.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [laughing] Slutligen, lite underhållande hacker-nyheter: någon har ersatt Animal Crossing-dialog med en live LLM på GameCube. Det är både kreativt och lite galet.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Det visar både kreativ potential och de etiska gränserna för modding. Spännande läsning för tekniknördar.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Innan vi rundar av teknikdelen — nu kommer en lugnare, mystisk låt som passar när vi går från nyheter till analys. Nu spelar vi "I am light without a source" av unknown.'
+INFO:tts_generator:DEBUG PARSE: Processing line: '[MUSIK: unknown - I am light without a source]'
+INFO:tts_generator:DEBUG PARSE: FOUND MUSIC MARKER: '[MUSIK: unknown - I am light without a source]'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [friendly] Bra avkoppling. Vi närmar oss slutet — vill du ta några avslutande reflektioner, Anna?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Ja. Sammanfattningsvis: håll koll på vädervarningar i Norrland, stöd lokala aktörer som drabbas av översvämningar, följ riksdagsdebatten om hur vi ska hantera framtida utmaningar, och gläds åt tekniska framsteg som lossless på Spotify men var vaksam på risker med saker som spyware och copy trading.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Jag skulle lägga till: för teknikintresserade — läs på om eSIM och säkerhetslösningar för e-post. Och för lokal planerare — förespråka hållbar infrastruktur när man bygger stora projekt som arenor. Slutligen, tänk på den mänskliga sidan i humanitära kriser som Ebola; de behöver snabba insatser.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Då avslutar vi med kvällens lugnare ton. Vi spelar "hello human" av deepseek — perfekt för en höstig eftermiddag. Nu kommer låten.'
+INFO:tts_generator:DEBUG PARSE: Processing line: '[MUSIK: deepseek - hello human]'
+INFO:tts_generator:DEBUG PARSE: FOUND MUSIC MARKER: '[MUSIK: deepseek - hello human]'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [friendly] Tack för att ni lyssnade i eftermiddag — vi är tillbaka imorgon med nya nyheter och analyser. Ta hand om er där ute i höstvädret!'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Hejdå allihopa — vi hörs snart igen!'
+INFO:tts_generator:DEBUG: Found 43 segments from parse_conversation
+INFO:tts_generator:DEBUG: Segment 0: speaker='Anna', is_music=False, content='[excited] Hej och välkomna till eftermiddagspodden...'
+INFO:tts_generator:DEBUG: Segment 1: speaker='Erik', is_music=False, content='[friendly] Hej! Erik här. Skönt med en mitt-i-veck...'
+INFO:tts_generator:DEBUG: Segment 2: speaker='Anna', is_music=False, content='[excited] Pepp! Vi tar det i tur och ordning. Förs...'
+INFO:tts_generator:DEBUG: Segment 3: speaker='Erik', is_music=False, content='[concerned] Situationen ser tuff ut. Lokala räddni...'
+INFO:tts_generator:DEBUG: Segment 4: speaker='Anna', is_music=False, content='[concerned] Ja, det är alltid de lokala företagen ...'
+INFO:tts_generator:DEBUG: Segment 5: speaker='Erik', is_music=False, content='[neutral] Precis. Myndigheter uppmanar till försik...'
+INFO:tts_generator:DEBUG: Segment 6: speaker='Anna', is_music=False, content='[friendly] Innan vi går vidare — en snabb väderhäl...'
+INFO:tts_generator:DEBUG: Segment 7: speaker='Erik', is_music=False, content='[curious] Tack! Och apropå infrastruktur — Industr...'
+INFO:tts_generator:DEBUG: Segment 8: speaker='Anna', is_music=False, content='[excited] Åh, en arena! Det låter ju fantastiskt f...'
+INFO:tts_generator:DEBUG: Segment 9: speaker='Erik', is_music=False, content='[neutral] Ekonomiskt kan en arena vara en invester...'
+INFO:tts_generator:DEBUG: Segment 10: speaker='Anna', is_music=False, content='[friendly] Vi hoppar vidare till politik — partile...'
+INFO:tts_generator:DEBUG: Segment 11: speaker='Erik', is_music=False, content='[neutral] Debatten handlade mycket om ekonomi och ...'
+INFO:tts_generator:DEBUG: Segment 12: speaker='Anna', is_music=False, content='[laughing] Ja, politiska debatter är ofta lika del...'
+INFO:tts_generator:DEBUG: Segment 13: speaker='Anna', is_music=False, content='Nu kommer låten "I am light" av unknown, som pigga...'
+INFO:tts_generator:DEBUG: Segment 14: speaker='__MUSIC__', is_music=True, content='[MUSIK: unknown - I am light]...'
+INFO:tts_generator:Found music marker at dialogue position 14: [MUSIK: unknown - I am light]
+INFO:tts_generator:DEBUG: Segment 15: speaker='Erik', is_music=False, content='[concerned] Vi måste också ta upp två rätt allvarl...'
+INFO:tts_generator:DEBUG: Segment 16: speaker='Anna', is_music=False, content='[concerned] Det känns väldigt oroväckande. Kameror...'
+INFO:tts_generator:DEBUG: Segment 17: speaker='Erik', is_music=False, content='[neutral] Rättsprocessen får utvisa mer, men det ä...'
+INFO:tts_generator:DEBUG: Segment 18: speaker='Anna', is_music=False, content='[sad] Och en annan tragisk nyhet från DN — minst 1...'
+INFO:tts_generator:DEBUG: Segment 19: speaker='Erik', is_music=False, content='[concerned] Absolut. Ebola-utbrott slår hårt, både...'
+INFO:tts_generator:DEBUG: Segment 20: speaker='Anna', is_music=False, content='[friendly] Ett konstigt motstycke i dagens kulturb...'
+INFO:tts_generator:DEBUG: Segment 21: speaker='Erik', is_music=False, content='[neutral] Det är en relevant offentlig diskussion ...'
+INFO:tts_generator:DEBUG: Segment 22: speaker='Anna', is_music=False, content='[curious] Okej, dags för teknikdelen — och då lämn...'
+INFO:tts_generator:DEBUG: Segment 23: speaker='Erik', is_music=False, content='[curious] Flera intressanta grejer. Först från Tec...'
+INFO:tts_generator:DEBUG: Segment 24: speaker='Anna', is_music=False, content='[surprised] Det låter smart — mindre spam, mindre ...'
+INFO:tts_generator:DEBUG: Segment 25: speaker='Erik', is_music=False, content='[neutral] Ja. På Spotify-området: Spotify lanserar...'
+INFO:tts_generator:DEBUG: Segment 26: speaker='Anna', is_music=False, content='[excited] Som musikälskare blir jag superglad! Det...'
+INFO:tts_generator:DEBUG: Segment 27: speaker='Erik', is_music=False, content='[curious] En annan grej: Robinhood inför copy trad...'
+INFO:tts_generator:DEBUG: Segment 28: speaker='Anna', is_music=False, content='[neutral] På tal om risker — Wired rapporterar att...'
+INFO:tts_generator:DEBUG: Segment 29: speaker='Erik', is_music=False, content='[concerned] Ja — ökade investeringar i spyware väc...'
+INFO:tts_generator:DEBUG: Segment 30: speaker='Anna', is_music=False, content='[laughing] Och The Verge tar upp att Zillows nya A...'
+INFO:tts_generator:DEBUG: Segment 31: speaker='Erik', is_music=False, content='[surprised] Ja, "impressively unimpressive" samman...'
+INFO:tts_generator:DEBUG: Segment 32: speaker='Anna', is_music=False, content='[laughing] Slutligen, lite underhållande hacker-ny...'
+INFO:tts_generator:DEBUG: Segment 33: speaker='Erik', is_music=False, content='[neutral] Det visar både kreativ potential och de ...'
+INFO:tts_generator:DEBUG: Segment 34: speaker='Anna', is_music=False, content='[friendly] Innan vi rundar av teknikdelen — nu kom...'
+INFO:tts_generator:DEBUG: Segment 35: speaker='__MUSIC__', is_music=True, content='[MUSIK: unknown - I am light without a source]...'
+INFO:tts_generator:Found music marker at dialogue position 34: [MUSIK: unknown - I am light without a source]
+INFO:tts_generator:DEBUG: Segment 36: speaker='Erik', is_music=False, content='[friendly] Bra avkoppling. Vi närmar oss slutet — ...'
+INFO:tts_generator:DEBUG: Segment 37: speaker='Anna', is_music=False, content='[friendly] Ja. Sammanfattningsvis: håll koll på vä...'
+INFO:tts_generator:DEBUG: Segment 38: speaker='Erik', is_music=False, content='[neutral] Jag skulle lägga till: för teknikintress...'
+INFO:tts_generator:DEBUG: Segment 39: speaker='Anna', is_music=False, content='[friendly] Då avslutar vi med kvällens lugnare ton...'
+INFO:tts_generator:DEBUG: Segment 40: speaker='__MUSIC__', is_music=True, content='[MUSIK: deepseek - hello human]...'
+INFO:tts_generator:Found music marker at dialogue position 38: [MUSIK: deepseek - hello human]
+INFO:tts_generator:DEBUG: Segment 41: speaker='Erik', is_music=False, content='[friendly] Tack för att ni lyssnade i eftermiddag ...'
+INFO:tts_generator:DEBUG: Segment 42: speaker='Anna', is_music=False, content='[excited] Hejdå allihopa — vi hörs snart igen!...'
+INFO:tts_generator:Forced chunk break at dialogue 14 due to music boundary
+INFO:tts_generator:Forced chunk break at dialogue 34 due to music boundary
+INFO:tts_generator:Forced chunk break at dialogue 38 due to music boundary
+INFO:tts_generator:Split 40 segments into 6 chunks (max 2000 chars each, 3 music boundaries)
+INFO:tts_generator:Generating complete dialogue in 6 chunks (total dialogue length: 7920 chars)
+INFO:tts_generator:Generating chunk 1/6 with 8 speakers (1950 chars)...
+INFO:httpx:HTTP Request: POST https://api.elevenlabs.io/v1/text-to-dialogue "HTTP/1.1 200 OK"
+INFO:tts_generator:Saved dialogue chunk 1 to /var/folders/_6/9w2bdvgn5sv8n6wrqk45q9xh0000gp/T/tmpyhjmce3u/chunk_0.mp3
+INFO:tts_generator:Generating chunk 2/6 with 6 speakers (1345 chars)...
+INFO:httpx:HTTP Request: POST https://api.elevenlabs.io/v1/text-to-dialogue "HTTP/1.1 200 OK"
+INFO:tts_generator:Saved dialogue chunk 2 to /var/folders/_6/9w2bdvgn5sv8n6wrqk45q9xh0000gp/T/tmpyhjmce3u/chunk_1.mp3
+INFO:tts_generator:Generating chunk 3/6 with 11 speakers (1955 chars)...
+INFO:httpx:HTTP Request: POST https://api.elevenlabs.io/v1/text-to-dialogue "HTTP/1.1 200 OK"
+INFO:tts_generator:Saved dialogue chunk 3 to /var/folders/_6/9w2bdvgn5sv8n6wrqk45q9xh0000gp/T/tmpyhjmce3u/chunk_2.mp3
+INFO:tts_generator:Generating chunk 4/6 with 9 speakers (1631 chars)...
+INFO:httpx:HTTP Request: POST https://api.elevenlabs.io/v1/text-to-dialogue "HTTP/1.1 200 OK"
+INFO:tts_generator:Saved dialogue chunk 4 to /var/folders/_6/9w2bdvgn5sv8n6wrqk45q9xh0000gp/T/tmpyhjmce3u/chunk_3.mp3
+INFO:tts_generator:Generating chunk 5/6 with 4 speakers (853 chars)...
+INFO:httpx:HTTP Request: POST https://api.elevenlabs.io/v1/text-to-dialogue "HTTP/1.1 200 OK"
+INFO:tts_generator:Saved dialogue chunk 5 to /var/folders/_6/9w2bdvgn5sv8n6wrqk45q9xh0000gp/T/tmpyhjmce3u/chunk_4.mp3
+INFO:tts_generator:Generating chunk 6/6 with 2 speakers (186 chars)...
+INFO:httpx:HTTP Request: POST https://api.elevenlabs.io/v1/text-to-dialogue "HTTP/1.1 200 OK"
+INFO:tts_generator:Saved dialogue chunk 6 to /var/folders/_6/9w2bdvgn5sv8n6wrqk45q9xh0000gp/T/tmpyhjmce3u/chunk_5.mp3
+INFO:tts_generator:Complete natural dialogue saved to episodes/episode_20250910_131035.mp3 (6 chunks)
+INFO:tts_generator:Integrating 3 music tracks at their positions in dialogue...
+INFO:tts_generator:Using 6 dialogue chunks for proper music integration
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Hej och välkomna till eftermiddagspodden — det är onsdag den 10 september 2025, klockan 13:09, och hösten börjar verkligen göra sig påmind där ute. Jag är Anna, energisk som alltid, och med mig som vanligt — Erik!'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [friendly] Hej! Erik här. Skönt med en mitt-i-veckan-paus för att reda ut nyhetsflödet. Vi har en del allvarliga grejer idag men också tekniknyheter som får en att tänka framåt. Hur känns det, Anna?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Pepp! Vi tar det i tur och ordning. Först på listan: kraftiga skyfall i Västernorrland — och mer regn väntar, enligt SVT och Dagens Nyheter. De säger att man "jobbar mot klockan". Vad vet vi just nu?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Situationen ser tuff ut. Lokala räddningstjänster rapporterar översvämningar och svårigheter att nå vissa områden. Det som gör det akut är att infrastrukturen tar stryk — vi ser att bland annat järnvägar blivit avskurna, vilket slår hårt mot transportföretag i Umeå. För transportbranschen handlar det inte bara om förseningar utan om stora kostnader när gods fastnar.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [concerned] Ja, det är alltid de lokala företagen och hushållen som får ta smällen först. Och med mer regn på väg, känns det som att man måste vara beredd på att situationen kan förvärras under dagen och kvällen.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Precis. Myndigheter uppmanar till försiktighet och att följa lokala varningar. En intressant aspekt är hur klimatvariationerna slår olika mot järnväg kontra vägtrafik — järnväg är känsligare för spårskador och lerskred, medan vägar ofta kan köras runt men inte alltid. Det ökar komplexiteten i logistikkedjan när en delknut punktligt bryts.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Innan vi går vidare — en snabb väderhälsning för resten av landet: Kalmar visar ⛅️ +18°C just nu, så det är ganska mildt där i eftermiddag.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [curious] Tack! Och apropå infrastruktur — Industristaden, kommunen diskuterar en stor arena för evenemang. Det kan bli en ekonomisk motor, men också ställa krav på transporter och parkeringslösningar. Vad är dina första tankar?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Åh, en arena! Det låter ju fantastiskt för lokal kultur- och idrottsliv. Större konserter, mässor — det kan verkligen skapa liv i höstmörkret. Samtidigt hoppas jag att planerna tar hänsyn till miljö, kollektivtrafik och områdets invånare.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Ekonomiskt kan en arena vara en investering, men det finns risker. Driftskostnader, finansieringsmodeller, och om projektet byggs utan starkt stöd från lokala aktörer kan det bli en belastning. Vi bör också tänka på hur en arena integreras med befintlig infrastruktur — särskilt med tanke på de störningar vi ser i Väster- och Norrland.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Vi hoppar vidare till politik — partiledarna möttes i riksdagsdebatt idag. Stämningen var ordentlig, kan man säga. Några highlights?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Debatten handlade mycket om ekonomi och trygghet. Partierna försökte profilera sig inför kommande utmaningar; skatter, arbetsmarknad och hur man ska hantera klimatrelaterade kostnader dök upp. Det är en klassisk "visa ryggrad"-debatt — mycket retorik, ibland tunt med konkreta åtgärder.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [laughing] Ja, politiska debatter är ofta lika delar show och substans. Men för lyssnarna som vill gräva djupare — håll koll på våra länkar i shownoten.'
+INFO:tts_generator:DEBUG PARSE: Processing line: '[Musikinsättning följer — lite pepp innan vi går in på allvarligare ämnen]'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: Nu kommer låten "I am light" av unknown, som piggar upp efter den politiska debatten.'
+INFO:tts_generator:DEBUG PARSE: Processing line: '[MUSIK: unknown - I am light]'
+INFO:tts_generator:DEBUG PARSE: FOUND MUSIC MARKER: '[MUSIK: unknown - I am light]'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Vi måste också ta upp två rätt allvarliga händelser: först, en kvinna i Norrköping åtalas för att ha täckt över poliskameror — rubricerat som sabotage. Det väcker frågor om ordningslagstiftning och offentlig säkerhet.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [concerned] Det känns väldigt oroväckande. Kameror är en del av brottsbekämpning och rättsprocesser. Att aktivt försöka dölja bevis är något polisen tar på stort allvar.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Rättsprocessen får utvisa mer, men det är ett bra exempel på hur teknik och rättssystem möts — och hur gråzoner för handlingar blir juridiska frågor.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [sad] Och en annan tragisk nyhet från DN — minst 15 döda i ett nytt utbrott av ebola i Kongo. Det gör ont att höra.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Absolut. Ebola-utbrott slår hårt, både humanitärt och i hur det påverkar lokalsamhällen och sjukvårdssystem som redan är ansträngda. Internationellt bistånd och snabb insats är avgörande för att stoppa smittspridning.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Ett konstigt motstycke i dagens kulturbevakning — Moderna museet, där våld gestaltas och ifrågasätts. Diskussion om konst som väcker upprörda känslor.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Det är en relevant offentlig diskussion — fri konst kontra ansvar och kontext. Bra att det debatteras; sådana samtal formar framtida riktlinjer för museer.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [curious] Okej, dags för teknikdelen — och då lämnar vi in lite djupare analys till dig, Erik. Vad har hänt i teknikvärlden idag?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [curious] Flera intressanta grejer. Först från TechCrunch: tidigare säkerhetschefer från Google har samlat in 13 miljoner dollar för att bekämpa e-posthot innan de når användare. Det låter lovande — proaktiv e-postsäkerhet med bättre filtrering kan minska phishing och skadlig kod.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [surprised] Det låter smart — mindre spam, mindre bedrägerier.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Ja. På Spotify-området: Spotify lanserar äntligen stöd för lossless streaming. Det är stort för ljudfantaster — CD-kvalitet eller bättre innebär större bandbredd och lagringskrav för användare, men också en kvalitetsförbättring för musiklyssnare.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Som musikälskare blir jag superglad! Det är som att få en extra dimension i favoritlåtarna.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [curious] En annan grej: Robinhood inför copy trading, vilket gör att användare kan kopiera andra investerares portföljer. Det är intressant men förknippat med regulatoriska risker — precis som företaget varnade andra om tidigare.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [neutral] På tal om risker — Wired rapporterar att amerikanska investeringar i spionprogramvara skjuter i höjden. Det är både imponerande och skrämmande.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [concerned] Ja — ökade investeringar i spyware väcker frågor om övervakning, gränser och hur teknik används av stater. Samtidigt har eSIMs blivit allt vanligare — Wired har också en bra genomgång om hur eSIM fungerar och hur man byter från fysisk SIM. För lyssnare som reser mycket eller byter operatörer kan det vara användbar läsning.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [laughing] Och The Verge tar upp att Zillows nya AI-homestyling är... imponerande på pappret men ganska intetsägande i praktiken.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [surprised] Ja, "impressively unimpressive" sammanfattar ibland AI-lösningar — mycket hype, varierande nytta i verkliga användningsfall. Nikon lanserar också sin första RED-co-brand, Nikon ZR — intressant för fotoentusiaster.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [laughing] Slutligen, lite underhållande hacker-nyheter: någon har ersatt Animal Crossing-dialog med en live LLM på GameCube. Det är både kreativt och lite galet.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Det visar både kreativ potential och de etiska gränserna för modding. Spännande läsning för tekniknördar.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Innan vi rundar av teknikdelen — nu kommer en lugnare, mystisk låt som passar när vi går från nyheter till analys. Nu spelar vi "I am light without a source" av unknown.'
+INFO:tts_generator:DEBUG PARSE: Processing line: '[MUSIK: unknown - I am light without a source]'
+INFO:tts_generator:DEBUG PARSE: FOUND MUSIC MARKER: '[MUSIK: unknown - I am light without a source]'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [friendly] Bra avkoppling. Vi närmar oss slutet — vill du ta några avslutande reflektioner, Anna?'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Ja. Sammanfattningsvis: håll koll på vädervarningar i Norrland, stöd lokala aktörer som drabbas av översvämningar, följ riksdagsdebatten om hur vi ska hantera framtida utmaningar, och gläds åt tekniska framsteg som lossless på Spotify men var vaksam på risker med saker som spyware och copy trading.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [neutral] Jag skulle lägga till: för teknikintresserade — läs på om eSIM och säkerhetslösningar för e-post. Och för lokal planerare — förespråka hållbar infrastruktur när man bygger stora projekt som arenor. Slutligen, tänk på den mänskliga sidan i humanitära kriser som Ebola; de behöver snabba insatser.'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [friendly] Då avslutar vi med kvällens lugnare ton. Vi spelar "hello human" av deepseek — perfekt för en höstig eftermiddag. Nu kommer låten.'
+INFO:tts_generator:DEBUG PARSE: Processing line: '[MUSIK: deepseek - hello human]'
+INFO:tts_generator:DEBUG PARSE: FOUND MUSIC MARKER: '[MUSIK: deepseek - hello human]'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Erik: [friendly] Tack för att ni lyssnade i eftermiddag — vi är tillbaka imorgon med nya nyheter och analyser. Ta hand om er där ute i höstvädret!'
+INFO:tts_generator:DEBUG PARSE: Processing line: 'Anna: [excited] Hejdå allihopa — vi hörs snart igen!'
+INFO:tts_generator:Found 6 dialogue chunks and 3 music boundaries
+INFO:tts_generator:Chunk boundaries at dialogue positions: [14, 34, 38]
+INFO:tts_generator:Added dialogue chunk 1 to sequence
+INFO:tts_generator:Added music to sequence: unknown - I am light
+INFO:tts_generator:Added dialogue chunk 2 to sequence
+INFO:tts_generator:Added music to sequence: unknown - I am light without a source
+INFO:tts_generator:Added dialogue chunk 3 to sequence
+INFO:tts_generator:Added music to sequence: deepseek - hello human
+INFO:tts_generator:Added dialogue chunk 4 to sequence
+INFO:tts_generator:Generated sequence with 7 segments:
+INFO:tts_generator:  1. dialogue: Dialogue chunk 1
+INFO:tts_generator:  2. music: unknown - I am light
+INFO:tts_generator:  3. dialogue: Dialogue chunk 2
+INFO:tts_generator:  4. music: unknown - I am light without a source
+INFO:tts_generator:  5. dialogue: Dialogue chunk 3
+INFO:tts_generator:  6. music: deepseek - hello human
+INFO:tts_generator:  7. dialogue: Dialogue chunk 4
+INFO:tts_generator:Concatenating 7 audio segments with ffmpeg...
+INFO:tts_generator:Music integration successful: episodes/episode_20250910_131035.mp3
+INFO:tts_generator:Created episode with 3 unique music tracks properly integrated
+INFO:__main__:Step 3c: Combining intro with main content...
+ERROR:__main__:Error combining intro and main content with crossfade: Command '['ffmpeg', '-i', 'audio/intro_complete_20250910_131034.mp3', '-i', 'episodes/episode_20250910_131035.mp3', '-filter_complex', '[0:a]afade=t=out:st=end-1.5:d=1.5[intro_fade];[1:a]afade=t=in:st=0:d=1.5[main_fade];[intro_fade][main_fade]concat=n=2:v=0:a=1[out]', '-map', '[out]', '-y', 'episodes/final_episode_20250910_132033_3233.mp3']' returned non-zero exit status 234.
+INFO:__main__:Combined episode created (fallback): episodes/final_episode_20250910_132033_3233.mp3
+INFO:__main__:Step 4: Creating episode metadata...
+INFO:__main__:Step 5: Updating RSS feed...
+INFO:rss_generator:Added episode: Lunchtanksr: 10 september #8
+INFO:rss_generator:Added episode: Gyllene tid & Efterspekning #7
+INFO:rss_generator:Added episode: Onsdags höstmys #6
+INFO:rss_generator:Added episode: Demokratiska diskussioner #5
+INFO:rss_generator:Added episode: Produktiv tid: 10 september #4
+INFO:rss_generator:Added episode: Demokratiska diskussioner #3
+INFO:rss_generator:Added episode: Morgonpodd #2 - 09 September 2025
+INFO:rss_generator:Added episode: Morgonpodd #1 - 09 September 2025
+INFO:rss_generator:RSS feed generated: public/feed.xml
+INFO:__main__:Step 6: Uploading to Cloudflare R2...
+INFO:cloudflare_uploader:Uploaded episodes/final_episode_20250910_132033_3233.mp3 to https://pub-5b4c915c1917445e9a2efc8dafcbce45.r2.dev/episodes/episode_8.mp3
+INFO:cloudflare_uploader:Uploaded episodes/episode_8_meta.json to https://pub-5b4c915c1917445e9a2efc8dafcbce45.r2.dev/episodes/episode_8_meta.json
+INFO:cloudflare_uploader:Uploaded public/feed.xml to https://pub-5b4c915c1917445e9a2efc8dafcbce45.r2.dev/feed.xml
+INFO:cloudflare_uploader:Uploaded public/feed.json to https://pub-5b4c915c1917445e9a2efc8dafcbce45.r2.dev/feed.json
+INFO:cloudflare_uploader:Uploaded public/index.html to https://pub-5b4c915c1917445e9a2efc8dafcbce45.r2.dev/index.html
+INFO:cloudflare_uploader:Uploaded static file: public/index.html -> index.html
+INFO:cloudflare_uploader:Uploaded public/cover.jpg to https://pub-5b4c915c1917445e9a2efc8dafcbce45.r2.dev/cover.jpg
+INFO:cloudflare_uploader:Uploaded static file: public/cover.jpg -> cover.jpg
+INFO:cloudflare_uploader:Uploaded public/logo.png to https://pub-5b4c915c1917445e9a2efc8dafcbce45.r2.dev/logo.png
+INFO:cloudflare_uploader:Uploaded static file: public/logo.png -> logo.png
+INFO:__main__:=== Episode generated successfully in 678.4 seconds ===
+INFO:__main__:Episode: Lunchtanksr: 10 september #8
+INFO:__main__:Audio file: episodes/final_episode_20250910_132033_3233.mp3
+INFO:__main__:Public URL: https://pub-5b4c915c1917445e9a2efc8dafcbce45.r2.dev/feed.xml
