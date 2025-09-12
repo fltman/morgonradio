@@ -1050,16 +1050,29 @@ def show_episode_scheduling(config):
     with col2:
         st.write("**📊 Schedule Status**")
         
+        # Check if scheduled task actually exists in system
+        task_exists = check_scheduled_task_exists()
+        import platform
+        task_type = "Scheduled Task" if platform.system() == "Windows" else "Cron Job"
+        
         if schedule_enabled and selected_days:
             next_run = get_next_scheduled_run(generate_time, selected_days)
-            st.success(f"✅ Scheduling Active")
+            
+            if task_exists:
+                st.success(f"✅ Scheduling Active ({task_type} created)")
+            else:
+                st.warning(f"⚠️ Config enabled but no {task_type} found - click Save to create")
+                
             st.info(f"Next episode: {next_run.strftime('%Y-%m-%d at %H:%M')}")
             
             # Show which days are active
             active_days = [days_of_week[i] for i in selected_days]
             st.text("Active days: " + ", ".join(active_days))
         else:
-            st.warning("⚠️ Scheduling Disabled")
+            if task_exists:
+                st.warning(f"⚠️ Config disabled but {task_type} still exists - click Save to remove")
+            else:
+                st.warning("⚠️ Scheduling Disabled")
         
         # Recent schedule activity
         st.write("**📈 Recent Activity:**")
@@ -1079,12 +1092,20 @@ def show_episode_scheduling(config):
         
         save_schedule_config(schedule_file, schedule_config)
         
-        if schedule_enabled:
-            start_scheduler_service()
-            st.success("✅ Schedule saved and activated!")
+        # Manage scheduled task based on enabled status
+        success, message = manage_scheduled_task(
+            schedule_enabled, 
+            generate_time.strftime('%H:%M'), 
+            selected_days
+        )
+        
+        if success:
+            if schedule_enabled:
+                st.success(f"✅ Schedule saved and automatic task created!\n{message}")
+            else:
+                st.info(f"💾 Schedule saved and automatic task removed.\n{message}")
         else:
-            stop_scheduler_service()
-            st.info("💾 Schedule saved (disabled)")
+            st.error(f"❌ Schedule saved but automatic task failed: {message}")
     
     # Manual schedule controls
     st.divider()
@@ -1166,23 +1187,155 @@ def show_schedule_history():
     else:
         st.text("No history available")
 
-def start_scheduler_service():
-    """Start the background scheduler service"""
+def manage_scheduled_task(enabled, time_str, days_of_week):
+    """Cross-platform scheduled task management"""
+    import platform
+    
+    if platform.system() == "Windows":
+        return manage_windows_scheduled_task(enabled, time_str, days_of_week)
+    else:
+        return manage_unix_cron_job(enabled, time_str, days_of_week)
+
+def manage_windows_scheduled_task(enabled, time_str, days_of_week):
+    """Add or remove Windows Scheduled Task for automatic generation"""
     try:
         import subprocess
-        # Check if already running
-        result = subprocess.run(['pgrep', '-f', 'python.*main.py.*schedule'], 
-                              capture_output=True, text=True)
-        if result.stdout.strip():
-            return True  # Already running
+        import platform
         
-        # Start scheduler in background
-        subprocess.Popen(['python', '../src/main.py', 'schedule'], 
-                        stdout=subprocess.DEVNULL, 
-                        stderr=subprocess.DEVNULL)
-        return True
+        task_name = "MorgonPoddGeneration"
+        
+        # Delete existing task if it exists
+        subprocess.run(['schtasks', '/delete', '/tn', task_name, '/f'], 
+                      capture_output=True, text=True)
+        
+        if enabled and days_of_week:
+            # Get paths
+            python_path = sys.executable
+            project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            script_path = os.path.join(project_path, 'src', 'main.py')
+            
+            # Convert days to Windows format (MON, TUE, WED, THU, FRI, SAT, SUN)
+            day_names = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
+            windows_days = [day_names[day] for day in days_of_week]
+            days_str = ','.join(windows_days)
+            
+            # Create scheduled task
+            cmd = [
+                'schtasks', '/create',
+                '/tn', task_name,
+                '/tr', f'"{python_path}" "{script_path}"',
+                '/sc', 'weekly',
+                '/d', days_str,
+                '/st', time_str,
+                '/ru', 'SYSTEM',
+                '/f'  # Force overwrite
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True)
+            
+            if result.returncode == 0:
+                return True, f"✅ Windows Scheduled Task created for {time_str} on {days_str}"
+            else:
+                return False, f"Error creating scheduled task: {result.stderr}"
+        else:
+            return True, "📅 Windows Scheduled Task removed (scheduling disabled)"
+            
+    except Exception as e:
+        return False, f"Error managing Windows scheduled task: {str(e)}"
+
+def manage_unix_cron_job(enabled, time_str, days_of_week):
+    """Add or remove cron job for automatic generation (Unix/Mac)"""
+    try:
+        import subprocess
+        import tempfile
+        
+        # Get current crontab
+        result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
+        current_cron = result.stdout if result.returncode == 0 else ""
+        
+        # Filter out existing morgonpodd entries
+        cron_lines = [line for line in current_cron.split('\n') 
+                     if line and 'morgonpodd' not in line.lower()]
+        
+        if enabled and days_of_week:
+            # Parse time
+            hour, minute = time_str.split(':')
+            
+            # Convert days to cron format (0=Sunday, 1=Monday, etc.)
+            # Our days_of_week uses 0=Monday, so we need to convert
+            cron_days = []
+            for day in days_of_week:
+                # Convert: Mon=0->1, Tue=1->2, ..., Sat=5->6, Sun=6->0
+                cron_day = (day + 1) % 7
+                cron_days.append(str(cron_day))
+            
+            days_str = ','.join(cron_days) if cron_days else '*'
+            
+            # Get Python and project paths
+            python_path = sys.executable
+            project_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            
+            # Create cron entry with comment for identification
+            cron_entry = f"{minute} {hour} * * {days_str} cd {project_path} && {python_path} src/main.py >> episodes/cron.log 2>&1 # morgonpodd-auto"
+            cron_lines.append(cron_entry)
+            
+            message = f"✅ Cron job created for {time_str} on selected days"
+        else:
+            message = "📅 Cron job removed (scheduling disabled)"
+        
+        # Write new crontab
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.cron', delete=False) as f:
+            f.write('\n'.join(cron_lines))
+            if cron_lines and cron_lines[-1]:  # Add final newline if content exists
+                f.write('\n')
+            temp_file = f.name
+        
+        # Install new crontab
+        result = subprocess.run(['crontab', temp_file], capture_output=True, text=True)
+        os.unlink(temp_file)
+        
+        if result.returncode == 0:
+            return True, message
+        else:
+            return False, f"Error updating crontab: {result.stderr}"
+            
+    except Exception as e:
+        return False, f"Error managing cron job: {str(e)}"
+
+def check_scheduled_task_exists():
+    """Check if scheduled task exists (cross-platform)"""
+    import platform
+    
+    if platform.system() == "Windows":
+        return check_windows_scheduled_task_exists()
+    else:
+        return check_unix_cron_job_exists()
+
+def check_windows_scheduled_task_exists():
+    """Check if Windows scheduled task exists"""
+    try:
+        import subprocess
+        result = subprocess.run(['schtasks', '/query', '/tn', 'MorgonPoddGeneration'], 
+                              capture_output=True, text=True)
+        return result.returncode == 0
     except:
         return False
+
+def check_unix_cron_job_exists():
+    """Check if Unix/Mac cron job exists"""
+    try:
+        import subprocess
+        result = subprocess.run(['crontab', '-l'], capture_output=True, text=True)
+        if result.returncode == 0:
+            return 'morgonpodd' in result.stdout.lower()
+        return False
+    except:
+        return False
+
+def start_scheduler_service():
+    """Start the background scheduler service (deprecated - using cron instead)"""
+    # This function is kept for backward compatibility but now just returns True
+    return True
 
 def stop_scheduler_service():
     """Stop the background scheduler service"""
