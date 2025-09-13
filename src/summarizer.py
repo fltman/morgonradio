@@ -1,11 +1,12 @@
 import json
 import logging
 from datetime import datetime
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 from openai import OpenAI
 import os
 from dotenv import load_dotenv
 import sys
+import requests
 sys.path.append(os.path.dirname(__file__))
 from music_library import MusicLibrary
 
@@ -15,18 +16,74 @@ logger = logging.getLogger(__name__)
 
 class PodcastSummarizer:
     def __init__(self):
-        api_key = os.getenv('OPENAI_API_KEY')
-        if not api_key:
-            logger.warning("OpenAI API key not found. Using fallback mode.")
-            self.client = None
+        # Check for OpenRouter first, then fallback to OpenAI
+        self.openrouter_api_key = os.getenv('OPENROUTER_API_KEY')
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        
+        if self.openrouter_api_key:
+            logger.info("Using OpenRouter API")
+            self.client = OpenAI(
+                base_url="https://openrouter.ai/api/v1",
+                api_key=self.openrouter_api_key,
+            )
+            self.using_openrouter = True
+        elif self.openai_api_key:
+            logger.info("Using OpenAI API")
+            self.client = OpenAI(api_key=self.openai_api_key)
+            self.using_openrouter = False
         else:
-            self.client = OpenAI(api_key=api_key)
+            logger.warning("No API key found for OpenRouter or OpenAI. Using fallback mode.")
+            self.client = None
+            self.using_openrouter = False
+            
         config_path = os.path.join(os.path.dirname(__file__), '..', 'sources.json')
         with open(config_path, 'r', encoding='utf-8') as f:
             self.config = json.load(f)
         
         # Initialize music library
         self.music_library = MusicLibrary()
+    
+    def get_openrouter_models(self) -> List[Dict[str, Any]]:
+        """Fetch available models from OpenRouter API"""
+        if not self.openrouter_api_key:
+            return []
+        
+        try:
+            response = requests.get(
+                "https://openrouter.ai/api/v1/models",
+                headers={
+                    "Authorization": f"Bearer {self.openrouter_api_key}",
+                }
+            )
+            response.raise_for_status()
+            models_data = response.json()
+            
+            # Filter and sort models for better usability
+            models = []
+            for model in models_data.get('data', []):
+                # Filter out models that are too expensive or not suitable for text generation
+                if (model.get('pricing', {}).get('prompt', '0') != '0' and 
+                    'text-generation' in model.get('architecture', {}).get('tokenizer', '') or
+                    'gpt' in model.get('id', '').lower() or
+                    'claude' in model.get('id', '').lower() or
+                    'llama' in model.get('id', '').lower() or
+                    'gemini' in model.get('id', '').lower()):
+                    
+                    models.append({
+                        'id': model.get('id', ''),
+                        'name': model.get('name', model.get('id', '')),
+                        'context_length': model.get('context_length', 0),
+                        'pricing': model.get('pricing', {}),
+                        'description': f"{model.get('name', '')} - Context: {model.get('context_length', 0)}"
+                    })
+            
+            # Sort by name for better organization
+            models.sort(key=lambda x: x['name'].lower())
+            return models
+            
+        except Exception as e:
+            logger.error(f"Failed to fetch OpenRouter models: {e}")
+            return []
     
     def create_podcast_script(self, scraped_data: List[Dict[str, Any]]) -> str:
         # Prepare content for summarization
@@ -187,8 +244,19 @@ Mål: Ett 8-12 minuters samtal som maximerar ElevenLabs emotionella röstteknolo
             system_prompt = self.config.get('podcastSettings', {}).get('system_prompt', 
                 "Du är en professionell AI som hjälper till att skapa naturliga samtal mellan poddvärdar på svenska.")
             
+            # Get model from config, with appropriate defaults for OpenRouter vs OpenAI
+            if self.using_openrouter:
+                default_model = "openai/gpt-5-mini"  # OpenRouter format - GPT-5 with 400K context!
+                model = self.config.get('podcastSettings', {}).get('openrouter_model', default_model)
+            else:
+                default_model = "gpt-5-mini"  # OpenAI format - fallback to GPT-5 if available
+                model = self.config.get('podcastSettings', {}).get('openai_model', default_model)
+            
+            logger.info(f"Using model: {model}")
+            
+            # Simple API call - no max_tokens or temperature needed
             response = self.client.chat.completions.create(
-                model="gpt-5-mini",
+                model=model,
                 messages=[
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}

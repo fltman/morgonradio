@@ -17,8 +17,41 @@ En AI-driven tjänst som automatiskt genererar dagliga svenska podcast-avsnitt m
 - Python 3.8 eller högre
 - macOS, Linux eller Windows
 - FFmpeg installerat (`brew install ffmpeg` på macOS)
-- API-nycklar för OpenAI och ElevenLabs
+- API-nycklar för OpenAI eller OpenRouter, och ElevenLabs
 - Cloudflare-konto med R2 storage
+
+## 🤖 AI Providers
+
+Morgonpodd stödjer två AI-leverantörer för innehållsgenerering:
+
+### OpenAI (Direkt API)
+- **Fördelar**: Direktintegration, stabil prestanda, senaste GPT-5 modeller
+- **Modeller**: 
+  - **GPT-5 serien** ✨: gpt-5 (400K kontext), gpt-5-mini, gpt-5-nano
+  - **GPT-4.1 serien** ✨: gpt-4.1, gpt-4.1-mini, gpt-4.1-nano (1M+ kontext!)
+  - **GPT-4o serien**: gpt-4o, gpt-4o-mini, gpt-4o-audio-preview
+  - **o1 reasoning**: o1-pro, o1, o1-mini (avancerad resonering)
+  - **GPT-4 turbo**: gpt-4-turbo, gpt-4-turbo-preview
+  - **GPT-3.5**: gpt-3.5-turbo, gpt-3.5-turbo-16k
+- **Kostnad**: Betala per token direkt till OpenAI
+- **Skaffa nyckel**: [platform.openai.com/api-keys](https://platform.openai.com/api-keys)
+- **OBS**: GPT-5 modeller är nu tillgängliga via OpenAI API!
+
+### OpenRouter (Rekommenderat)
+- **Fördelar**: Tillgång till 90+ AI-modeller från olika leverantörer
+- **Modeller**: Claude, Gemini, Llama, GPT-4, Mistral, Command R, och många fler
+- **Kostnad**: Ofta billigare än direkta API:er, betala endast för användning
+- **Skaffa nyckel**: [openrouter.ai](https://openrouter.ai)
+
+#### Populära OpenRouter-modeller för svenska poddar:
+- `anthropic/claude-3.5-sonnet` - Excellant för svenska samtal
+- `openai/gpt-4o-mini` - Kostnadeffektiv och snabb  
+- `openai/o1-mini` - Bra för komplex resonering
+- `google/gemini-pro-1.5` - Lång kontext för innehållsanalys
+- `meta-llama/llama-3.1-70b-instruct` - Kraftfull open source
+- `mistralai/mistral-large` - Europeisk AI med bra svenska
+
+**Tips**: Om du har både nycklar kommer systemet automatiskt att använda OpenRouter för fler modellalternativ.
 
 ## 🚀 Installation
 
@@ -55,8 +88,11 @@ cp .env.example .env
 Redigera `.env` med dina API-nycklar och inställningar:
 
 ```env
-# OpenAI API (Krävs)
+# OpenAI API (Krävs) - eller använd OpenRouter nedan
 OPENAI_API_KEY=din_openai_api_nyckel_här
+
+# OpenRouter API (Alternativ till OpenAI) - ger tillgång till fler modeller
+OPENROUTER_API_KEY=din_openrouter_api_nyckel_här
 
 # ElevenLabs API (Krävs)
 ELEVENLABS_API_KEY=din_elevenlabs_api_nyckel_här

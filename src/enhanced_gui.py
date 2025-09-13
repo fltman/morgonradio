@@ -106,6 +106,7 @@ def main():
         pages = [
             "Dashboard",
             "Podcast Settings", 
+            "AI Models",
             "Music Library",
             "News Sources",
             "Prompts",
@@ -140,6 +141,8 @@ def main():
         show_dashboard(config)
     elif selected_page == "Podcast Settings":
         show_podcast_settings(config)
+    elif selected_page == "AI Models":
+        show_ai_models(config)
     elif selected_page == "Music Library":
         show_music_library_comprehensive()
     elif selected_page == "News Sources":
@@ -150,6 +153,187 @@ def main():
         show_episode_generation(config)
     elif selected_page == "API Keys":
         show_api_keys()
+
+def show_ai_models(config):
+    st.header("🤖 AI Models Configuration")
+    st.write("Configure AI providers and models for content generation.")
+    
+    settings = config['podcastSettings']
+    
+    # Import the summarizer to get OpenRouter models
+    try:
+        sys.path.append(os.path.dirname(__file__))
+        from summarizer import PodcastSummarizer
+        summarizer = PodcastSummarizer()
+    except Exception as e:
+        st.error(f"Could not load summarizer: {e}")
+        return
+    
+    # Current configuration section
+    st.subheader("🔧 Current Configuration")
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        provider_options = ["auto", "openai", "openrouter"]
+        current_provider = settings.get('ai_provider', 'auto')
+        
+        ai_provider = st.selectbox(
+            "AI Provider",
+            options=provider_options,
+            index=provider_options.index(current_provider) if current_provider in provider_options else 0,
+            help="Choose AI provider: 'auto' uses OpenRouter if key available, else OpenAI"
+        )
+    
+    with col2:
+        # Show current model being used
+        if summarizer.using_openrouter:
+            st.info("🌐 Currently using OpenRouter")
+            current_model = settings.get('openrouter_model', 'openai/gpt-4o-mini')
+        else:
+            st.info("🔵 Currently using OpenAI")
+            current_model = settings.get('openai_model', 'gpt-4o-mini')
+        
+        st.text(f"Current model: {current_model}")
+    
+    # Model selection section
+    st.markdown("---")
+    st.subheader("🎯 Model Selection")
+    
+    # OpenAI Models section
+    with st.expander("🔵 OpenAI Models", expanded=(ai_provider == "openai")):
+        # Models organized by capability/generation
+        openai_models = [
+            # GPT-5 models (Latest generation!)
+            "gpt-5",  # 400K context
+            "gpt-5-chat",  # 128K context
+            "gpt-5-mini",  # 400K context, faster
+            "gpt-5-nano",  # 400K context, fastest
+            # GPT-4.1 models (1M+ context!)
+            "gpt-4.1",  # 1M+ context
+            "gpt-4.1-mini",  # 1M+ context
+            "gpt-4.1-nano",  # 1M+ context
+            # Latest GPT-4o models
+            "gpt-4o",
+            "gpt-4o-2024-11-20",
+            "gpt-4o-2024-08-06",
+            "gpt-4o-2024-05-13",
+            "chatgpt-4o-latest",
+            "gpt-4o-audio-preview",  # Audio capabilities
+            "gpt-4o-mini", 
+            "gpt-4o-mini-2024-07-18",
+            # o1 reasoning models
+            "o1-pro",  # Most capable reasoning
+            "o1",
+            "o1-2024-12-17",
+            "o1-mini",
+            "o1-mini-2024-09-12",
+            "o1-preview",
+            # GPT-4 turbo variants
+            "gpt-4-turbo",
+            "gpt-4-turbo-2024-04-09",
+            "gpt-4-turbo-preview",
+            "gpt-4-1106-preview",
+            # Standard GPT-4
+            "gpt-4",
+            "gpt-4-0613",
+            "gpt-4-0314",
+            # GPT-3.5 models
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-3.5-turbo-0125",
+            "gpt-3.5-turbo-1106",
+            "gpt-3.5-turbo-0613",
+            "gpt-3.5-turbo-instruct"
+        ]
+        
+        current_openai_model = settings.get('openai_model', 'gpt-4o-mini')
+        selected_openai_model = st.selectbox(
+            "OpenAI Model",
+            options=openai_models,
+            index=openai_models.index(current_openai_model) if current_openai_model in openai_models else 0,
+            key="openai_model_select"
+        )
+        
+        if st.button("Update OpenAI Model", key="update_openai"):
+            settings['openai_model'] = selected_openai_model
+            save_config(config)
+            st.success(f"✅ OpenAI model updated to: {selected_openai_model}")
+            st.rerun()
+    
+    # OpenRouter Models section  
+    with st.expander("🌐 OpenRouter Models", expanded=(ai_provider == "openrouter")):
+        if not os.getenv('OPENROUTER_API_KEY'):
+            st.warning("⚠️ OpenRouter API key not found. Please set OPENROUTER_API_KEY in your environment.")
+            st.info("OpenRouter provides access to many AI models including Claude, Gemini, and more.")
+        else:
+            with st.spinner("🔄 Loading OpenRouter models..."):
+                openrouter_models = summarizer.get_openrouter_models()
+            
+            if not openrouter_models:
+                st.error("❌ Could not fetch OpenRouter models. Check your API key.")
+            else:
+                # Show model categories
+                model_categories = {
+                    "OpenAI": [m for m in openrouter_models if 'openai' in m['id'].lower()],
+                    "Anthropic (Claude)": [m for m in openrouter_models if 'anthropic' in m['id'].lower() or 'claude' in m['id'].lower()],
+                    "Google": [m for m in openrouter_models if 'google' in m['id'].lower() or 'gemini' in m['id'].lower()],
+                    "Meta": [m for m in openrouter_models if 'meta' in m['id'].lower() or 'llama' in m['id'].lower()],
+                    "Other": [m for m in openrouter_models if not any(x in m['id'].lower() for x in ['openai', 'anthropic', 'claude', 'google', 'gemini', 'meta', 'llama'])]
+                }
+                
+                # Filter out empty categories
+                model_categories = {k: v for k, v in model_categories.items() if v}
+                
+                # Create tabs for each category
+                if model_categories:
+                    tabs = st.tabs(list(model_categories.keys()))
+                    
+                    for i, (category, models) in enumerate(model_categories.items()):
+                        with tabs[i]:
+                            st.write(f"**{len(models)} models available**")
+                            
+                            # Model selection
+                            model_options = [f"{m['id']} - {m['name']}" for m in models]
+                            current_openrouter_model = settings.get('openrouter_model', 'openai/gpt-4o-mini')
+                            
+                            # Find current selection
+                            current_index = 0
+                            for j, model in enumerate(models):
+                                if model['id'] == current_openrouter_model:
+                                    current_index = j
+                                    break
+                            
+                            selected_model_str = st.selectbox(
+                                f"{category} Models",
+                                options=model_options,
+                                index=current_index if current_index < len(model_options) else 0,
+                                key=f"or_model_{category.lower().replace(' ', '_')}"
+                            )
+                            
+                            if selected_model_str:
+                                selected_model_id = selected_model_str.split(' - ')[0]
+                                selected_model = next(m for m in models if m['id'] == selected_model_id)
+                                
+                                # Show model details
+                                st.info(f"**Context Length**: {selected_model['context_length']:,} tokens")
+                                if selected_model.get('pricing'):
+                                    pricing = selected_model['pricing']
+                                    if pricing.get('prompt') and pricing.get('completion'):
+                                        st.info(f"**Pricing**: ${pricing['prompt']}/M prompt + ${pricing['completion']}/M completion")
+                                
+                                if st.button(f"Use {selected_model['name']}", key=f"use_model_{category}"):
+                                    settings['openrouter_model'] = selected_model_id
+                                    save_config(config)
+                                    st.success(f"✅ OpenRouter model updated to: {selected_model['name']}")
+                                    st.rerun()
+    
+    # Save provider selection
+    if ai_provider != settings.get('ai_provider', 'auto'):
+        if st.button("💾 Update AI Provider"):
+            settings['ai_provider'] = ai_provider
+            save_config(config)
+            st.success(f"✅ AI provider updated to: {ai_provider}")
+            st.rerun()
 
 def show_dashboard(config):
     st.header("🏠 Dashboard")
