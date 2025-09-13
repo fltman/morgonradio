@@ -267,7 +267,7 @@ class NewsScraper:
             logger.debug(f"JavaScript scraping failed for {url}: {e}")
             return ""
     
-    async def extract_facebook_posts(self, html_content: str) -> List[Dict[str, Any]]:
+    async def extract_facebook_posts(self, html_content: str, max_items: int = 10) -> List[Dict[str, Any]]:
         """Extract Facebook posts from JavaScript-rendered HTML"""
         try:
             soup = BeautifulSoup(html_content, 'html.parser')
@@ -283,7 +283,12 @@ class NewsScraper:
             
             for selector in post_selectors:
                 elements = soup.select(selector)
-                for element in elements[:10]:  # Limit to 10 posts
+                logger.debug(f"🔍 Selector '{selector}' found {len(elements)} elements")
+                
+                for element in elements:
+                    if len(posts) >= max_items:  # Stop when we have enough posts
+                        break
+                        
                     # Extract text content
                     text_content = element.get_text(separator=' ', strip=True)
                     
@@ -316,7 +321,8 @@ class NewsScraper:
                             'source_timestamp': timestamp
                         })
                 
-                if posts:  # If we found posts with this selector, we're done
+                # Continue trying selectors until we have enough posts
+                if len(posts) >= max_items:
                     break
             
             # Fallback: look for any text that looks like Facebook posts
@@ -495,8 +501,9 @@ class NewsScraper:
         elif 'facebook-blog' in source['url'] or needs_javascript:
             # Special handling for Facebook/social media content
             logger.info(f"📘 Extracting Facebook/social media posts...")
-            facebook_posts = await self.extract_facebook_posts(html)
-            items = facebook_posts[:source.get('maxItems', 5)]
+            max_items = source.get('maxItems', 5)
+            facebook_posts = await self.extract_facebook_posts(html, max_items)
+            items = facebook_posts  # No need to limit again since extract_facebook_posts already respects max_items
             if items:
                 logger.info(f"✅ Extracted {len(items)} social media posts")
             else:
