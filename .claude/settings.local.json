@@ -3,7 +3,11 @@
     "allow": [
       "Bash(/Users/andersbj/miniconda3/bin/python:*)",
       "Bash(lsof:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(crontab:*)",
+      "WebFetch(domain:www.digitalaverkligheter.se)"
     ],
     "deny": [],
     "ask": []

@@ -1,74 +1,9 @@
 {
   "sources": [
     {
-      "name": "SVT Nyheter RSS",
-      "url": "https://www.svt.se/nyheter/rss.xml",
-      "type": "news",
-      "format": "rss",
-      "priority": 1,
-      "maxItems": 5,
-      "selector": "",
-      "description": "",
-      "enabled": true
-    },
-    {
-      "name": "DN RSS",
-      "url": "https://www.dn.se/rss/",
-      "type": "news",
-      "format": "rss",
-      "priority": 1,
-      "maxItems": 3,
-      "selector": "",
-      "description": "",
-      "enabled": true
-    },
-    {
-      "name": "TechCrunch RSS",
-      "url": "https://techcrunch.com/feed/",
-      "type": "tech",
-      "format": "rss",
-      "priority": 2,
-      "maxItems": 3,
-      "selector": "",
-      "description": "",
-      "enabled": true
-    },
-    {
-      "name": "Wired RSS",
-      "url": "https://www.wired.com/feed/rss",
-      "type": "tech",
-      "format": "rss",
-      "priority": 2,
-      "maxItems": 2,
-      "selector": "",
-      "description": "",
-      "enabled": true
-    },
-    {
-      "name": "The Verge RSS",
-      "url": "https://www.theverge.com/rss/index.xml",
-      "type": "tech",
-      "format": "rss",
-      "priority": 2,
-      "maxItems": 2,
-      "selector": "",
-      "description": "",
-      "enabled": true
-    },
-    {
-      "name": "Hacker News (HTML fallback)",
-      "url": "https://news.ycombinator.com/",
-      "type": "tech",
-      "selector": ".titleline > a",
-      "priority": 3,
-      "maxItems": 3,
-      "description": "",
-      "enabled": true
-    },
-    {
-      "name": "väder",
-      "url": "https://wttr.in/kalmar?format=3",
-      "type": "weather",
+      "name": "Digitala verkligheter",
+      "url": "https://www.digitalaverkligheter.se/feed/",
+      "type": "rss",
       "selector": "",
       "description": "",
       "enabled": true

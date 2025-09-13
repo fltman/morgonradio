@@ -7,6 +7,14 @@ import logging
 from typing import List, Dict, Any
 import feedparser
 
+# Optional imports for JavaScript rendering
+try:
+    from playwright.async_api import async_playwright
+    PLAYWRIGHT_AVAILABLE = True
+except ImportError:
+    PLAYWRIGHT_AVAILABLE = False
+    logging.warning("Playwright not available - JavaScript scraping disabled. Install with: pip install playwright")
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -143,6 +151,111 @@ class NewsScraper:
             logger.debug(f"Could not fetch article content from {url}: {e}")
             return ""
     
+    async def fetch_javascript_content(self, url: str, wait_for_selector: str = None) -> str:
+        """Fetch content from pages that require JavaScript rendering"""
+        if not PLAYWRIGHT_AVAILABLE:
+            logger.warning("Playwright not available - cannot fetch JavaScript content")
+            return ""
+        
+        try:
+            async with async_playwright() as p:
+                browser = await p.chromium.launch(headless=True)
+                context = await browser.new_context(
+                    user_agent='Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+                )
+                page = await context.new_page()
+                
+                # Navigate to page
+                logger.debug(f"🌐 Loading JavaScript page: {url}")
+                await page.goto(url, wait_until='networkidle', timeout=30000)
+                
+                # Wait for specific selector if provided
+                if wait_for_selector:
+                    try:
+                        await page.wait_for_selector(wait_for_selector, timeout=10000)
+                        logger.debug(f"✅ Found selector: {wait_for_selector}")
+                    except:
+                        logger.debug(f"⚠️ Selector not found: {wait_for_selector}")
+                else:
+                    # Wait a bit for dynamic content to load
+                    await page.wait_for_timeout(3000)
+                
+                # Get page content
+                content = await page.content()
+                await browser.close()
+                
+                return content
+                
+        except Exception as e:
+            logger.debug(f"JavaScript scraping failed for {url}: {e}")
+            return ""
+    
+    async def extract_facebook_posts(self, html_content: str) -> List[Dict[str, Any]]:
+        """Extract Facebook posts from JavaScript-rendered HTML"""
+        try:
+            soup = BeautifulSoup(html_content, 'html.parser')
+            posts = []
+            
+            # Look for various Facebook post containers
+            post_selectors = [
+                '.fb-post', '.facebook-post', '[data-href*="facebook.com"]',
+                '.post-content', '.social-post', '.embed-facebook'
+            ]
+            
+            for selector in post_selectors:
+                elements = soup.select(selector)
+                for element in elements[:10]:  # Limit to 10 posts
+                    # Extract text content
+                    text_content = element.get_text(separator=' ', strip=True)
+                    
+                    # Clean up and validate
+                    if len(text_content) > 50:
+                        # Try to extract timestamp, likes, etc.
+                        timestamp_elem = element.select_one('[datetime], .timestamp, .time')
+                        timestamp = timestamp_elem.get('datetime') or timestamp_elem.get_text() if timestamp_elem else ''
+                        
+                        # Extract Facebook URL if available
+                        fb_link = element.get('data-href') or ''
+                        if not fb_link:
+                            link_elem = element.select_one('a[href*="facebook.com"]')
+                            fb_link = link_elem.get('href', '') if link_elem else ''
+                        
+                        posts.append({
+                            'title': text_content[:100] + '...' if len(text_content) > 100 else text_content,
+                            'content': text_content[:1000] + '...' if len(text_content) > 1000 else text_content,
+                            'link': fb_link,
+                            'timestamp': datetime.now().isoformat(),
+                            'source_timestamp': timestamp
+                        })
+                
+                if posts:  # If we found posts with this selector, we're done
+                    break
+            
+            # Fallback: look for any text that looks like Facebook posts
+            if not posts:
+                # Look for paragraphs with substantial content
+                paragraphs = soup.find_all('p')
+                for p in paragraphs:
+                    text = p.get_text(strip=True)
+                    if len(text) > 100 and not any(skip in text.lower() for skip in ['menu', 'navigation', 'cookie']):
+                        posts.append({
+                            'title': text[:100] + '...' if len(text) > 100 else text,
+                            'content': text[:1000] + '...' if len(text) > 1000 else text,
+                            'link': '',
+                            'timestamp': datetime.now().isoformat(),
+                            'source_timestamp': ''
+                        })
+                        
+                        if len(posts) >= 5:  # Limit fallback posts
+                            break
+            
+            logger.debug(f"Extracted {len(posts)} Facebook posts")
+            return posts
+            
+        except Exception as e:
+            logger.debug(f"Error extracting Facebook posts: {e}")
+            return []
+    
     async def scrape_rss_source(self, session: aiohttp.ClientSession, source: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"📡 RSS feed detected for {source['name']}")
         
@@ -258,6 +371,20 @@ class NewsScraper:
             return self.create_empty_result(source, 'Failed to fetch HTML')
         
         logger.info(f"✅ Successfully fetched HTML ({len(html)} characters from {source['name']})")
+        
+        # Check if this page needs JavaScript rendering (Facebook embeds, etc.)
+        needs_javascript = any(indicator in html.lower() for indicator in [
+            'fb-post', 'facebook.com/plugins', 'facebook-blog', 'social-embed', 
+            'instagram-media', 'twitter-tweet', 'data-src=', 'lazy-load'
+        ])
+        
+        if needs_javascript and PLAYWRIGHT_AVAILABLE:
+            logger.info(f"🚀 Detected dynamic content - using JavaScript rendering for {source['name']}")
+            js_html = await self.fetch_javascript_content(source['url'], source.get('selector'))
+            if js_html:
+                html = js_html
+                logger.info(f"✅ JavaScript rendering complete ({len(html)} characters)")
+        
         soup = BeautifulSoup(html, 'html.parser')
         items = []
         
@@ -270,6 +397,15 @@ class NewsScraper:
                 logger.info(f"✅ Found weather info: {items[0].get('description', 'N/A')}")
             else:
                 logger.warning(f"❌ No weather information found")
+        elif 'facebook-blog' in source['url'] or needs_javascript:
+            # Special handling for Facebook/social media content
+            logger.info(f"📘 Extracting Facebook/social media posts...")
+            facebook_posts = await self.extract_facebook_posts(html)
+            items = facebook_posts[:source.get('maxItems', 5)]
+            if items:
+                logger.info(f"✅ Extracted {len(items)} social media posts")
+            else:
+                logger.warning(f"❌ No social media posts found")
         else:
             # Extract news/tech items from HTML
             selector = source.get('selector', 'h2')

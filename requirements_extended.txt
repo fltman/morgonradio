@@ -1,0 +1,26 @@
+# Extended requirements for JavaScript scraping
+# To use JavaScript/Facebook scraping features, run:
+# pip install -r requirements_extended.txt
+# playwright install chromium
+
+# Base requirements
+aiohttp
+beautifulsoup4
+feedparser
+
+# JavaScript scraping
+playwright>=1.40.0
+
+# Optional AI integrations
+openai>=1.0.0
+elevenlabs>=0.2.0
+
+# Cloud storage
+boto3
+
+# RSS generation
+feedgen
+
+# Configuration and utilities
+python-dotenv
+requests
