@@ -50,6 +50,85 @@ class NewsScraper:
         else:
             return await self.scrape_html_source(session, source)
     
+    async def fetch_article_content(self, session: aiohttp.ClientSession, url: str) -> str:
+        """Fetch full article content from URL"""
+        try:
+            content = await self.fetch_url(session, url, 'html')
+            if not content:
+                return ""
+            
+            soup = BeautifulSoup(content, 'html.parser')
+            
+            # Remove script, style, and nav elements
+            for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+                element.decompose()
+            
+            # Common article content selectors (in priority order)
+            article_selectors = [
+                'article .entry-content',  # WordPress common
+                'article .post-content',   # Blog common
+                '.article-body',           # News sites
+                '.story-body',             # BBC-style
+                '.content-body',           # Generic
+                'article',                 # Full article tag
+                '.entry-content',          # WordPress
+                '.post-content',           # Blogs
+                '.article-content',        # News
+                '.content',                # Generic
+                'main article',            # Semantic HTML
+                '.wp-block-post-content',  # WordPress blocks
+                '.entry',                  # Generic blog
+                '.post',                   # Generic blog
+                'main'                     # Main content
+            ]
+            
+            best_text = ""
+            best_length = 0
+            
+            for selector in article_selectors:
+                try:
+                    elements = soup.select(selector)
+                    for element in elements[:2]:  # Check first 2 matches
+                        # Get text from this element
+                        text = element.get_text(separator=' ', strip=True)
+                        
+                        # Clean up the text
+                        text = ' '.join(text.split())  # Normalize whitespace
+                        
+                        # Skip if too short or looks like navigation
+                        if len(text) < 100:
+                            continue
+                        if any(nav_word in text[:50].lower() for nav_word in ['menu', 'search', 'subscribe']):
+                            continue
+                        
+                        # Keep the longest quality text found
+                        if len(text) > best_length:
+                            best_text = text
+                            best_length = len(text)
+                except:
+                    continue
+            
+            if best_text:
+                return best_text[:2000]  # Limit to 2000 chars
+            
+            # Fallback: get all paragraph text
+            paragraphs = soup.find_all('p')
+            if paragraphs:
+                # Filter out short paragraphs (likely not content)
+                good_paragraphs = [
+                    p.get_text(strip=True) 
+                    for p in paragraphs 
+                    if len(p.get_text(strip=True)) > 30
+                ]
+                if good_paragraphs:
+                    text = ' '.join(good_paragraphs)
+                    return text[:2000] if text else ""
+            
+            return ""
+        except Exception as e:
+            logger.debug(f"Could not fetch article content from {url}: {e}")
+            return ""
+    
     async def scrape_rss_source(self, session: aiohttp.ClientSession, source: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"📡 RSS feed detected for {source['name']}")
         
@@ -70,7 +149,19 @@ class NewsScraper:
             logger.info(f"📡 RSS feed parsed: {len(feed.entries)} entries found")
             
             items = []
-            max_items = source.get('maxItems', 5)
+            
+            # Dynamic max items: if few sources, get more items per source
+            total_sources = len([s for s in self.sources if s.get('enabled', True)])
+            if total_sources <= 2:
+                max_items = source.get('maxItems', 15)  # Get many items when very few sources
+            elif total_sources <= 4:
+                max_items = source.get('maxItems', 10)  # Get moderate items
+            elif total_sources <= 6:
+                max_items = source.get('maxItems', 7)   # Standard amount
+            else:
+                max_items = source.get('maxItems', 5)   # Limit when many sources
+            
+            logger.info(f"📊 Using max {max_items} items (total sources: {total_sources})")
             
             for entry in feed.entries[:max_items]:
                 title = entry.get('title', '').strip()
@@ -94,9 +185,34 @@ class NewsScraper:
                         except:
                             pass
                     
-                    # Add summary if different from title
-                    if summary and summary != title and len(summary) > 10:
-                        item['summary'] = summary[:200] + '...' if len(summary) > 200 else summary
+                    # Check if summary is too short or generic
+                    # We should fetch full content for most RSS feeds as they often only provide teasers
+                    needs_full_content = False
+                    if not summary or len(summary) < 200:
+                        needs_full_content = True
+                    elif any(generic in summary.lower() for generic in [
+                        'inlägget', 'dök först upp på', 'läs mer', 'read more', 
+                        'continue reading', 'click here', '...', 'the post',
+                        'appeared first on', 'fortsätt läsa'
+                    ]):
+                        needs_full_content = True
+                    # Also fetch if summary is mostly links/HTML
+                    elif summary.count('<') > 5 or summary.count('http') > 2:
+                        needs_full_content = True
+                    
+                    # Fetch full article content if needed
+                    if needs_full_content and entry.get('link'):
+                        logger.debug(f"  📄 Fetching full content for: {title[:50]}...")
+                        article_content = await self.fetch_article_content(session, entry.get('link'))
+                        if article_content:
+                            item['summary'] = article_content[:500] + '...' if len(article_content) > 500 else article_content
+                            logger.debug(f"  ✓ Got {len(article_content)} chars of article content")
+                        elif summary:
+                            item['summary'] = summary[:200] + '...' if len(summary) > 200 else summary
+                    else:
+                        # Use existing summary if it's good enough
+                        if summary and summary != title and len(summary) > 10:
+                            item['summary'] = summary[:500] + '...' if len(summary) > 500 else summary
                     
                     items.append(item)
                     logger.debug(f"  ✓ Added RSS item: {text[:80]}...")
