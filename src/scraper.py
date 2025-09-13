@@ -180,6 +180,83 @@ class NewsScraper:
                     # Wait a bit for dynamic content to load
                     await page.wait_for_timeout(3000)
                 
+                # Click "See more" buttons to expand truncated Facebook posts
+                logger.debug("🔍 Looking for 'See more' buttons to expand content...")
+                # More comprehensive selectors for Facebook expand buttons
+                see_more_selectors = [
+                    # Facebook-specific selectors
+                    '[role="button"][aria-label*="See more"]',
+                    '[role="button"]:has-text("See More")',
+                    '[role="button"]:has-text("See more")', 
+                    '[role="button"]:has-text("Visa mer")',
+                    '[role="button"]:has-text("Show more")',
+                    # Generic expand selectors
+                    '.see-more', '.show-more', '.expand-text', '.expand-link',
+                    '[data-testid*="expand"]', '[aria-label*="expand"]',
+                    # Text-based selectors
+                    'a:has-text("See More")', 'a:has-text("see more")',
+                    'span:has-text("See More")', 'span:has-text("see more")',
+                    # More specific Facebook patterns
+                    'a[href="#"][role="button"]', '[tabindex="0"][role="button"]'
+                ]
+                
+                expanded_count = 0
+                
+                # First, try to find all "See More" text on the page for debugging
+                try:
+                    see_more_texts = await page.query_selector_all('text="See More"')
+                    logger.debug(f"Found {len(see_more_texts)} 'See More' text elements on page")
+                except:
+                    pass
+                
+                # Try multiple approaches to expand content
+                for selector in see_more_selectors:
+                    try:
+                        buttons = await page.query_selector_all(selector)
+                        logger.debug(f"Found {len(buttons)} buttons with selector: {selector}")
+                        
+                        for i, button in enumerate(buttons[:5]):  # Limit to 5 expansions
+                            try:
+                                # Check if button exists and is visible
+                                if await button.is_visible():
+                                    # Get button text for debugging
+                                    button_text = await button.inner_text()
+                                    logger.debug(f"Attempting to click button {i+1}: '{button_text[:30]}...'")
+                                    
+                                    # Try clicking with different methods
+                                    try:
+                                        await button.click(force=True, timeout=5000)
+                                        expanded_count += 1
+                                        logger.debug(f"✅ Successfully clicked button {i+1} ({expanded_count} total)")
+                                        await page.wait_for_timeout(2000)  # Wait for content to expand
+                                    except:
+                                        # Fallback: try JavaScript click
+                                        await page.evaluate('(button) => button.click()', button)
+                                        expanded_count += 1
+                                        logger.debug(f"✅ JS-clicked button {i+1} ({expanded_count} total)")
+                                        await page.wait_for_timeout(2000)
+                            except Exception as e:
+                                logger.debug(f"Failed to click button {i+1}: {str(e)[:50]}")
+                                continue
+                    except Exception as e:
+                        logger.debug(f"Error with selector {selector}: {str(e)[:50]}")
+                        continue
+                
+                if expanded_count > 0:
+                    logger.debug(f"🎯 Expanded {expanded_count} truncated posts")
+                    # Wait a bit more for all expanded content to load
+                    await page.wait_for_timeout(2000)
+                
+                # Scroll down to trigger lazy loading of more posts
+                logger.debug("📜 Scrolling to load more content...")
+                for scroll in range(3):  # Scroll 3 times
+                    await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
+                    await page.wait_for_timeout(1500)  # Wait for content to load
+                
+                # Final scroll back to top to ensure all content is processed
+                await page.evaluate("window.scrollTo(0, 0)")
+                await page.wait_for_timeout(1000)
+                
                 # Get page content
                 content = await page.content()
                 await browser.close()
@@ -199,7 +276,9 @@ class NewsScraper:
             # Look for various Facebook post containers
             post_selectors = [
                 '.fb-post', '.facebook-post', '[data-href*="facebook.com"]',
-                '.post-content', '.social-post', '.embed-facebook'
+                '.post-content', '.social-post', '.embed-facebook',
+                '.fb-xfbml-parse-ignore', '[id*="facebook"]', 
+                '.entry-content p', 'article p', '.content p'  # Fallback to paragraphs
             ]
             
             for selector in post_selectors:
@@ -208,8 +287,17 @@ class NewsScraper:
                     # Extract text content
                     text_content = element.get_text(separator=' ', strip=True)
                     
-                    # Clean up and validate
-                    if len(text_content) > 50:
+                    # Clean up the text content - remove Facebook UI artifacts
+                    cleaned_text = text_content
+                    for artifact in ['...See MoreSee Less', '...See More', 'See MoreSee Less', 
+                                   'See Less', '... See More', '...see more', 'see less']:
+                        cleaned_text = cleaned_text.replace(artifact, '')
+                    
+                    # Clean up whitespace
+                    cleaned_text = ' '.join(cleaned_text.split())
+                    
+                    # Validate cleaned content
+                    if len(cleaned_text) > 50:
                         # Try to extract timestamp, likes, etc.
                         timestamp_elem = element.select_one('[datetime], .timestamp, .time')
                         timestamp = timestamp_elem.get('datetime') or timestamp_elem.get_text() if timestamp_elem else ''
@@ -221,8 +309,8 @@ class NewsScraper:
                             fb_link = link_elem.get('href', '') if link_elem else ''
                         
                         posts.append({
-                            'title': text_content[:100] + '...' if len(text_content) > 100 else text_content,
-                            'content': text_content[:1000] + '...' if len(text_content) > 1000 else text_content,
+                            'title': cleaned_text[:100] + '...' if len(cleaned_text) > 100 else cleaned_text,
+                            'content': cleaned_text[:2000] + '...' if len(cleaned_text) > 2000 else cleaned_text,
                             'link': fb_link,
                             'timestamp': datetime.now().isoformat(),
                             'source_timestamp': timestamp
@@ -237,10 +325,17 @@ class NewsScraper:
                 paragraphs = soup.find_all('p')
                 for p in paragraphs:
                     text = p.get_text(strip=True)
+                    
+                    # Clean Facebook artifacts from fallback text too
+                    for artifact in ['...See MoreSee Less', '...See More', 'See MoreSee Less', 
+                                   'See Less', '... See More', '...see more', 'see less']:
+                        text = text.replace(artifact, '')
+                    text = ' '.join(text.split())
+                    
                     if len(text) > 100 and not any(skip in text.lower() for skip in ['menu', 'navigation', 'cookie']):
                         posts.append({
                             'title': text[:100] + '...' if len(text) > 100 else text,
-                            'content': text[:1000] + '...' if len(text) > 1000 else text,
+                            'content': text[:2000] + '...' if len(text) > 2000 else text,
                             'link': '',
                             'timestamp': datetime.now().isoformat(),
                             'source_timestamp': ''

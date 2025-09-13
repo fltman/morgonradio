@@ -1,11 +1,11 @@
 {
   "sources": [
     {
-      "name": "Digitala verkligheter",
-      "url": "https://www.digitalaverkligheter.se/feed/",
-      "type": "rss",
-      "selector": "",
-      "description": "",
+      "name": "Digitala Verkligheter Facebook",
+      "url": "https://www.digitalaverkligheter.se/facebook-blog/",
+      "type": "html",
+      "selector": ".fb-post, .facebook-post, p",
+      "maxItems": 10,
       "enabled": true
     }
   ],
