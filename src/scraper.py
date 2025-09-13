@@ -116,7 +116,7 @@ class NewsScraper:
                     continue
             
             if best_text:
-                return best_text[:2000]  # Limit to 2000 chars
+                return best_text[:5000]  # Increased limit to 5000 chars for better content
             
             # Fallback: get all paragraph text
             paragraphs = soup.find_all('p')
@@ -136,7 +136,7 @@ class NewsScraper:
                 
                 if good_paragraphs:
                     text = ' '.join(good_paragraphs)
-                    return text[:2000] if text else ""
+                    return text[:5000] if text else ""  # Increased limit for better content
             
             return ""
         except Exception as e:
@@ -207,11 +207,14 @@ class NewsScraper:
                     elif any(generic in summary.lower() for generic in [
                         'inlägget', 'dök först upp på', 'läs mer', 'read more', 
                         'continue reading', 'click here', '...', 'the post',
-                        'appeared first on', 'fortsätt läsa'
+                        'appeared first on', 'fortsätt läsa', 'dök först upp'
                     ]):
                         needs_full_content = True
-                    # Also fetch if summary is mostly links/HTML
-                    elif summary.count('<') > 5 or summary.count('http') > 2:
+                    # Also fetch if summary is mostly links/HTML (or has any HTML tags)
+                    elif summary.count('<') > 0 or summary.count('http') > 2:
+                        needs_full_content = True
+                    # Also if very short and generic sounding
+                    elif len(summary) < 150 and ('dök' in summary or 'inlägg' in summary):
                         needs_full_content = True
                     
                     # Fetch full article content if needed
@@ -219,14 +222,14 @@ class NewsScraper:
                         logger.debug(f"  📄 Fetching full content for: {title[:50]}...")
                         article_content = await self.fetch_article_content(session, entry.get('link'))
                         if article_content:
-                            item['summary'] = article_content[:500] + '...' if len(article_content) > 500 else article_content
+                            item['summary'] = article_content[:2000] + '...' if len(article_content) > 2000 else article_content
                             logger.debug(f"  ✓ Got {len(article_content)} chars of article content")
                         elif summary:
-                            item['summary'] = summary[:200] + '...' if len(summary) > 200 else summary
+                            item['summary'] = summary[:1000] + '...' if len(summary) > 1000 else summary
                     else:
                         # Use existing summary if it's good enough
                         if summary and summary != title and len(summary) > 10:
-                            item['summary'] = summary[:500] + '...' if len(summary) > 500 else summary
+                            item['summary'] = summary[:2000] + '...' if len(summary) > 2000 else summary
                     
                     items.append(item)
                     logger.debug(f"  ✓ Added RSS item: {text[:80]}...")
