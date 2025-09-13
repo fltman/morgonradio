@@ -59,8 +59,12 @@ class NewsScraper:
             
             soup = BeautifulSoup(content, 'html.parser')
             
-            # Remove script, style, and nav elements
-            for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside']):
+            # Remove script, style, nav, and comment form elements
+            for element in soup(['script', 'style', 'nav', 'header', 'footer', 'aside', 'form']):
+                element.decompose()
+            
+            # Also remove common comment/reply sections
+            for element in soup.find_all(class_=['comment-form', 'comments', 'respond', 'comment-respond', 'reply']):
                 element.decompose()
             
             # Common article content selectors (in priority order)
@@ -95,10 +99,13 @@ class NewsScraper:
                         # Clean up the text
                         text = ' '.join(text.split())  # Normalize whitespace
                         
-                        # Skip if too short or looks like navigation
+                        # Skip if too short or looks like navigation/comments
                         if len(text) < 100:
                             continue
-                        if any(nav_word in text[:50].lower() for nav_word in ['menu', 'search', 'subscribe']):
+                        if any(skip_word in text[:100].lower() for skip_word in [
+                            'menu', 'search', 'subscribe', 'lämna ett svar', 
+                            'din e-postadress', 'obligatoriska fält', 'comment', 'reply'
+                        ]):
                             continue
                         
                         # Keep the longest quality text found
@@ -114,12 +121,19 @@ class NewsScraper:
             # Fallback: get all paragraph text
             paragraphs = soup.find_all('p')
             if paragraphs:
-                # Filter out short paragraphs (likely not content)
-                good_paragraphs = [
-                    p.get_text(strip=True) 
-                    for p in paragraphs 
-                    if len(p.get_text(strip=True)) > 30
-                ]
+                # Filter out short paragraphs and comment form text
+                good_paragraphs = []
+                for p in paragraphs:
+                    p_text = p.get_text(strip=True)
+                    if len(p_text) > 30:
+                        # Skip if it looks like comment form
+                        if any(skip in p_text.lower() for skip in [
+                            'din e-postadress', 'obligatoriska fält', 
+                            'lämna ett svar', 'avbryt svar'
+                        ]):
+                            continue
+                        good_paragraphs.append(p_text)
+                
                 if good_paragraphs:
                     text = ' '.join(good_paragraphs)
                     return text[:2000] if text else ""
