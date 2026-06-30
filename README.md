@@ -1,5 +1,7 @@
 # 🎙️ Morgonpodd - Automatiserad Svensk Podcast Generator
 
+[![Support me on Patreon](https://img.shields.io/badge/Patreon-Support%20my%20work-FF424D?style=flat&logo=patreon&logoColor=white)](https://www.patreon.com/AndersBjarby)
+
 En AI-driven tjänst som automatiskt genererar dagliga svenska podcast-avsnitt med två värdar, musikintegration och RSS-distribution via Cloudflare R2.
 
 ## ✨ Funktioner
